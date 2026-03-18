@@ -559,7 +559,7 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
         </select>
       </div>
       <div><label class="fi-label">Caption (Optional)</label><input class="fi" id="upCaption" placeholder="Add a caption..."></div>
-      <button style="width:100%;background:linear-gradient(135deg,var(--c),#0080ff);border:none;color:#0A0F1C;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:2px;padding:13px;border-radius:6px;cursor:none;box-shadow:0 0 20px rgba(0,240,255,.24);text-transform:uppercase" onclick="doUpload()">📤 Upload Memory</button>
+      <button id="galUploadBtn" style="width:100%;background:linear-gradient(135deg,var(--c),#0080ff);border:none;color:#0A0F1C;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:2px;padding:13px;border-radius:6px;cursor:none;box-shadow:0 0 20px rgba(0,240,255,.24);text-transform:uppercase" onclick="doUpload()">📤 Upload Memory</button>
     </div>
   </div>
 </div>
@@ -594,6 +594,9 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
   </div>
 </div>
 <script>
+/* ═══ GLOBAL VARIABLES — shared across all script blocks ═══════ */
+window.uploadPhotoData = null; // gallery upload photo data
+
 /* ═══ CURSOR ══════════════════════════════════════════════════════ */
 const cur=document.getElementById('cur'),curR=document.getElementById('curR');
 let mx=0,my=0,rx=0,ry=0;
@@ -665,16 +668,46 @@ async function uploadToCloudinary(dataURL) {
   const fd = new FormData();
   fd.append('file', blob);
   fd.append('upload_preset', CLOUDINARY_PRESET);
-  console.log('📤 Uploading to Cloudinary...', CLOUDINARY_CLOUD, CLOUDINARY_PRESET);
+
+  console.log('📤 Cloudinary upload starting...');
+  console.log('   Cloud:', CLOUDINARY_CLOUD);
+  console.log('   Preset:', CLOUDINARY_PRESET);
+  console.log('   Blob size:', blob.size, 'bytes');
+  console.log('   URL:', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
     { method: 'POST', body: fd }
   );
+
+  console.log('   HTTP status:', res.status, res.statusText);
   const json = await res.json();
-  console.log('☁️ Cloudinary response:', json);
-  if (json.error) throw new Error('Cloudinary: ' + json.error.message);
-  if (!json.secure_url) throw new Error('Cloudinary: no URL returned');
+  console.log('   Cloudinary full response:', JSON.stringify(json));
+
+  if (json.error) {
+    const msg = json.error.message || 'Unknown Cloudinary error';
+    console.error('❌ Cloudinary error:', msg);
+    // Show on screen so mobile users can see it too
+    showDebugError('Cloudinary error: ' + msg);
+    throw new Error(msg);
+  }
+  if (!json.secure_url) {
+    console.error('❌ No URL in response:', json);
+    showDebugError('Cloudinary: no URL returned. Response: ' + JSON.stringify(json).slice(0,200));
+    throw new Error('Cloudinary returned no URL');
+  }
+
+  console.log('✅ Cloudinary upload success:', json.secure_url);
   return json.secure_url;
+}
+
+/* Shows a visible error box on screen — helpful for mobile debugging */
+function showDebugError(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:60px;left:12px;right:12px;z-index:99999;background:#1a0a0a;border:2px solid #ff4444;border-radius:10px;padding:14px 16px;font-family:monospace;font-size:.72rem;color:#ff8888;line-height:1.6;word-break:break-all;max-height:40vh;overflow-y:auto';
+  el.innerHTML = '<strong style="color:#ff4444;display:block;margin-bottom:6px">❌ DEBUG ERROR</strong>' + msg +
+    '<button onclick="this.parentElement.remove()" style="display:block;margin-top:10px;background:rgba(255,68,68,.2);border:1px solid #ff4444;color:#ff8888;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.7rem">CLOSE</button>';
+  document.body.appendChild(el);
 }
 
 function dataURLtoBlob(dataURL) {
@@ -793,10 +826,22 @@ async function deleteGalleryPhoto(photo) {
 function previewPhoto(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=e=>{uploadPhotoData=e.target.result;document.getElementById('dropPreview').innerHTML=`<img src="${e.target.result}" style="width:80px;height:60px;object-fit:cover;border-radius:6px">`};
+  reader.onload=e=>{
+    window.uploadPhotoData=e.target.result;
+    document.getElementById('dropPreview').innerHTML=`<img src="${e.target.result}" style="width:80px;height:60px;object-fit:cover;border-radius:6px">`;
+  };
   reader.readAsDataURL(file);
 }
-function handleDrop(e){e.preventDefault();document.getElementById('dropZone').style.borderColor='rgba(0,240,255,.28)';const file=e.dataTransfer.files[0];if(file&&file.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(file);document.getElementById('photoFile').files=dt.files;previewPhoto(document.getElementById('photoFile'));}}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor='rgba(0,240,255,.28)';
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/')){
+    const dt=new DataTransfer();dt.items.add(file);
+    document.getElementById('photoFile').files=dt.files;
+    previewPhoto(document.getElementById('photoFile'));
+  }
+}
 
 async function doUpload(){
   const name=document.getElementById('upName').value.trim();
@@ -804,31 +849,32 @@ async function doUpload(){
   const event=document.getElementById('upEvent').value;
   const caption=document.getElementById('upCaption').value.trim();
   if(!name||!college){showToast('⚠️ Please enter your name and college.');return;}
-  if(!uploadPhotoData){showToast('⚠️ Please select a photo.');return;}
+  if(!window.uploadPhotoData){showToast('⚠️ Please select a photo.');return;}
 
-  const uploadBtn = document.querySelector('#uploadModal .modal-box button:last-child');
-  if(uploadBtn){ uploadBtn.disabled=true; uploadBtn.textContent='⏳ UPLOADING...'; }
+  const uploadBtn=document.getElementById('galUploadBtn');
+  if(uploadBtn){uploadBtn.disabled=true;uploadBtn.textContent='⏳ UPLOADING...';}
 
-  try {
-    // Upload image to Cloudinary, get permanent URL
-    const imgUrl = await uploadToCloudinary(uploadPhotoData);
-    const photo = {
-      id: Date.now()+Math.random(),
-      name, college, event, caption,
-      src: imgUrl,
-      likes: 0, likedBy: [],
-      status: 'pending',
-      ts: new Date().toISOString()
+  try{
+    console.log('🚀 Starting upload, data length:', window.uploadPhotoData.length);
+    const imgUrl=await uploadToCloudinary(window.uploadPhotoData);
+    console.log('✅ Got Cloudinary URL:', imgUrl);
+    const photo={
+      id:Date.now()+Math.random(),
+      name,college,event,caption,
+      src:imgUrl,
+      likes:0,likedBy:[],
+      status:'pending',
+      ts:new Date().toISOString()
     };
     await addGalleryPhoto(photo);
     closeUploadModal();
     renderGallery();
     showToast('📤 Photo submitted for review!');
-  } catch(e) {
-    console.error('Upload error:', e);
-    showToast('❌ ' + (e.message || 'Upload failed'));
-  } finally {
-    if(uploadBtn){ uploadBtn.disabled=false; uploadBtn.textContent='📤 Upload Memory'; }
+  }catch(e){
+    console.error('Upload error:',e);
+    showToast('❌ '+(e.message||'Upload failed'));
+  }finally{
+    if(uploadBtn){uploadBtn.disabled=false;uploadBtn.textContent='📤 Upload Memory';}
   }
 }
 
@@ -1767,8 +1813,7 @@ function isGalleryVerified(){
   return sessionStorage.getItem(GALLERY_VERIFIED_KEY)==='1';
 }
 
-/* Gallery upload — opens directly if verified, shows locked message if not */
-let uploadPhotoData=null;
+/* Gallery upload modal */
 function openUploadModal(){
   if(isGalleryVerified()){
     document.getElementById('uploadModal').style.display='flex';
@@ -1782,7 +1827,7 @@ function openUploadModal(){
 }
 function closeUploadModal(){
   document.getElementById('uploadModal').style.display='none';
-  uploadPhotoData=null;
+  window.uploadPhotoData=null;
   document.getElementById('dropPreview').innerHTML='📷';
   document.getElementById('upName').value='';
   document.getElementById('upCollege').value='';
