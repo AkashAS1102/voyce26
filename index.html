@@ -1953,6 +1953,19 @@ updateUploadTriggerUI();
           </div>
           <input type="file" id="rReceiptFile" accept="image/*,application/pdf" style="display:none" onchange="rReceiptSelect(this)">
           <div class="rerr" id="reReceipt" style="margin-bottom:14px">Please upload your payment receipt</div>
+
+          <!-- Transaction ID -->
+          <div style="margin-bottom:18px">
+            <label class="rl">UPI Transaction ID *</label>
+            <input class="rfi" id="rfTxnId" type="text" placeholder="e.g. 4259876543210" maxlength="30"
+              style="letter-spacing:1px"
+              oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()">
+            <div style="font-size:.62rem;color:rgba(255,255,255,.25);margin-top:5px;line-height:1.6">
+              Find it in your UPI app → Payment History → this transaction → copy the UTR / Transaction ID
+            </div>
+            <div class="rerr" id="reTxn">Please enter your Transaction ID</div>
+          </div>
+
           <div style="display:flex;flex-direction:column;gap:9px">
             <button class="rsub" onclick="rGoStep(4)">✅ DONE — SUBMIT REGISTRATION</button>
             <button class="rsec" onclick="rGoStep(2)">← BACK</button>
@@ -2139,8 +2152,13 @@ function rVal1(){
 }
 function rVal2(){if(rSelEvs.length===0){rShowErr('reEv',true);return false;}rShowErr('reEv',false);return true;}
 function rVal3(){
-  if(!rReceiptDataURL){rShowErr('reReceipt',true);return false;}
-  rShowErr('reReceipt',false);return true;
+  let ok=true;
+  if(!rReceiptDataURL){rShowErr('reReceipt',true);ok=false;}
+  else{rShowErr('reReceipt',false);}
+  const txn=document.getElementById('rfTxnId').value.trim();
+  if(!txn||txn.length<6){rShowErr('reTxn',true);rMark('rfTxnId',true);ok=false;}
+  else{rShowErr('reTxn',false);rMark('rfTxnId',false);}
+  return ok;
 }
 
 function rToggleEv(i){
@@ -2237,7 +2255,7 @@ async function sendToSheets(data) {
         phone: data.phone, email: data.email, dept: data.dept,
         year: data.year, gender: data.gender||'',
         events: data.events.join(', '), amount: data.amount,
-        status: data.status, ts: data.ts,
+        txnId: data.txnId||'', status: data.status, ts: data.ts,
       }),
     });
   } catch(e) { console.warn('Sheets webhook error (non-critical):', e); }
@@ -2255,6 +2273,7 @@ async function rSubmit(){
     gender:document.getElementById('rfGender').value,
     events:rSelEvs.map(i=>RCFG.EVENTS[i].name),
     amount:rGetTotal(), flatFee:true, status:'pending',
+    txnId: document.getElementById('rfTxnId').value.trim(),
     ts:new Date().toISOString(),
     receiptUrl: rReceiptDataURL || '',
   };
@@ -2299,7 +2318,8 @@ function rShowSuccess(data){
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PHONE</span><span style="color:#fff">${data.phone}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">TXN ID</span><span style="color:#22c55e;font-weight:600;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:1px">${data.txnId||'—'}</span></div>
   </div>`;
   rUpdateStepper(4); document.getElementById('rs4').style.display='block';
   document.getElementById('regPanel').scrollTo({top:0,behavior:'smooth'});
