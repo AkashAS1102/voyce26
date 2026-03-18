@@ -940,33 +940,62 @@ const WORDS_EASY=['array','loop','code','data','sort','null','bool','char','byte
 const WORDS_MED=['neural','syntax','lambda','kernel','binary','python','buffer','socket','thread','cursor'];
 const WORDS_HARD=['algorithm','recursion','polymorphism','encapsulation','abstraction','inheritance','typescript','deployment','repository','containerization'];
 
+/* Load scores — localStorage is primary (always works),
+   Supabase is used when configured for cross-device sharing */
 async function loadScores(){
-  try{
-    if(window.__SB){
+  // Always load from localStorage first (instant, no network)
+  let local=[];
+  try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
+
+  // If Supabase is ready, merge with cloud scores
+  if(window.__SB){
+    try{
       const{data,error}=await window.__SB
-        .from('scores')
-        .select('*')
-        .order('ts',{ascending:false});
-      if(error)throw error;
-      return data||[];
-    }
-  }catch(e){console.warn('Score load:',e);}
-  return[];
+        .from('scores').select('*').order('ts',{ascending:false});
+      if(!error&&data&&data.length>0){
+        // Merge: combine cloud + local, deduplicate by id
+        const all=[...data,...local];
+        const seen=new Set();
+        const merged=all.filter(s=>{
+          const k=s.id||s.ts+'_'+s.game+'_'+s.name;
+          if(seen.has(k))return false;seen.add(k);return true;
+        });
+        return merged;
+      }
+    }catch(e){console.warn('Supabase score load failed, using local:',e);}
+  }
+  return local;
 }
-async function persistScore(e){
+
+/* Save score — always write to localStorage immediately,
+   then sync to Supabase in the background */
+async function persistScore(entry){
   try{
-    e.ts=new Date().toISOString();
+    entry.id=entry.id||('s_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+    entry.ts=new Date().toISOString();
+
+    // 1. Save to localStorage immediately (always works)
+    let local=[];
+    try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
+    local.unshift(entry);
+    // Keep only last 500 scores in localStorage
+    if(local.length>500)local=local.slice(0,500);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(local));
+
+    // 2. Sync to Supabase in background (non-blocking)
     if(window.__SB){
-      const{data,error}=await window.__SB
-        .from('scores')
-        .insert([e])
-        .select()
-        .single();
-      if(error)throw error;
-      e.id=data.id;
+      window.__SB.from('scores').insert([entry])
+        .then(({error})=>{ if(error) console.warn('Supabase sync failed:',error); })
+        .catch(e=>console.warn('Supabase sync error:',e));
     }
-    return await loadScores();
-  }catch(err){console.error(err);return scores;}
+
+    // 3. Reload merged scores and update UI
+    const all=await loadScores();
+    return all;
+  }catch(err){
+    console.error('persistScore error:',err);
+    return scores;
+  }
 }
 
 async function initGames(){scores=await loadScores();renderGameCards();renderLbFilters('all');renderLb('all');renderCollegeLb()}
@@ -1631,8 +1660,8 @@ function startSdRound(){
 }
 function bonus(r){return r===1?20:r===2?0:-10}
 
-/* INIT */
-initGames();
+/* INIT — Supabase must be ready before games init, so we defer */
+// initGames() is called after Supabase block below
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -1842,17 +1871,20 @@ updateUploadTriggerUI();
   // ▲▲▲ REPLACE THESE 2 VALUES WITH YOUR SUPABASE CONFIG ▲▲▲
 
   try {
-    if (SUPABASE_URL !== 'https://zmyshcsnbxewstlqhdtt.supabase.co') {
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
       window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       console.log('✅ Supabase ready');
     } else {
       window.__SB = null;
-      console.warn('Supabase not configured — running in demo mode');
+      console.warn('Supabase not configured — scores saved to localStorage');
     }
   } catch(e) {
     window.__SB = null;
     console.warn('Supabase error:', e);
   }
+
+  // Init games AFTER Supabase is ready so loadScores can use it
+  initGames();
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
