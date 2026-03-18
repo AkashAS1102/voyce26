@@ -592,17 +592,22 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
 
 <!-- Admin Panel -->
 <div id="adminPanel">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+  <div style="max-width:1100px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <h2 style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.4rem;color:var(--c)">⚙️ Admin Panel</h2>
       <button onclick="closeAdmin()" style="background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.25);color:#ff6666;font-family:'Orbitron',sans-serif;font-size:.68rem;padding:8px 18px;border-radius:6px;cursor:none">✕ CLOSE</button>
     </div>
-    <div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.24);border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:.78rem;color:rgba(255,149,0,.8)">⚠️ Admin access — Approve or reject submitted photos</div>
+    <div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.24);border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:.78rem;color:rgba(255,149,0,.8)">⚠️ Admin access — Manage gallery photos and game scores</div>
     <div id="adminPwdWrap">
       <input class="fi" id="adminPwd" placeholder="Enter admin password" type="password" style="max-width:280px;margin-bottom:12px">
       <button onclick="checkAdminPwd()" style="background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.3);color:var(--c);font-family:'Orbitron',sans-serif;font-size:.68rem;padding:9px 20px;border-radius:6px;cursor:none;margin-left:10px">UNLOCK</button>
     </div>
     <div id="adminContent" style="display:none">
+      <!-- Tab Bar -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid rgba(0,240,255,.12);padding-bottom:12px">
+        <button id="adminTab-photos" onclick="switchAdminTab('photos')" style="font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:1.5px;padding:8px 18px;border-radius:6px;cursor:none;transition:all .2s;background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.4);color:var(--c)">📸 GALLERY PHOTOS</button>
+        <button id="adminTab-scores" onclick="switchAdminTab('scores')" style="font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:1.5px;padding:8px 18px;border-radius:6px;cursor:none;transition:all .2s;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.38)">🏆 GAME SCORES</button>
+      </div>
       <div style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:rgba(255,255,255,.38);margin-bottom:16px" id="adminStats"></div>
       <!-- DB fix helper — shown only if approve fails -->
       <div id="dbFixBanner" style="display:none;margin-bottom:16px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.3);border-radius:8px;padding:14px 16px">
@@ -626,7 +631,59 @@ CREATE POLICY "Allow all gallery" ON gallery
   FOR ALL USING (true) WITH CHECK (true);</pre>
         <button onclick="copyFixSQL()" style="margin-top:8px;background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.3);color:var(--c);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:7px 16px;border-radius:5px;cursor:none">📋 COPY SQL</button>
       </div>
-      <div class="admin-grid" id="adminGrid"></div>
+      <!-- Photos tab content -->
+      <div id="adminTabPhotos">
+        <div class="admin-grid" id="adminGrid"></div>
+      </div>
+      <!-- Scores tab content -->
+      <div id="adminTabScores" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <select id="scFilterGame" onchange="renderAdminScores()" style="background:rgba(0,240,255,.06);border:1px solid rgba(0,240,255,.22);border-radius:6px;color:var(--c);font-family:'Orbitron',sans-serif;font-size:.6rem;padding:7px 10px;cursor:none;letter-spacing:1px">
+              <option value="all">ALL GAMES</option>
+            </select>
+            <input id="scSearch" oninput="renderAdminScores()" placeholder="Search name or college..." style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);border-radius:6px;color:#fff;font-family:'Poppins',sans-serif;font-size:.8rem;padding:7px 12px;width:200px;outline:none">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="refreshAdminScores()" style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:7px 14px;border-radius:5px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.25);color:var(--c);cursor:none">↺ REFRESH</button>
+            <button onclick="clearAllScoresConfirm()" style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:7px 14px;border-radius:5px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.28);color:#ff6666;cursor:none">🗑 CLEAR ALL</button>
+          </div>
+        </div>
+        <div id="adminScoreStats" style="font-family:'Orbitron',sans-serif;font-size:.62rem;color:rgba(255,255,255,.28);margin-bottom:12px;letter-spacing:1px"></div>
+        <div style="overflow-x:auto">
+          <table id="adminScoreTable" style="width:100%;border-collapse:collapse;font-size:.78rem"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Score Edit Modal -->
+<div id="scoreEditModal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#0d1526;border:1px solid rgba(0,240,255,.28);border-radius:16px;padding:32px;max-width:440px;width:90%;position:relative;animation:popIn .3s ease">
+    <div style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:.9rem;color:var(--c);margin-bottom:20px;letter-spacing:2px">✏️ EDIT SCORE ENTRY</div>
+    <input type="hidden" id="seId">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.58);font-family:'Orbitron',sans-serif;display:block;margin-bottom:5px">NAME</label>
+        <input class="rfi" id="seName" type="text" maxlength="60" placeholder="Player name">
+      </div>
+      <div>
+        <label style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.58);font-family:'Orbitron',sans-serif;display:block;margin-bottom:5px">COLLEGE</label>
+        <input class="rfi" id="seCollege" type="text" maxlength="80" placeholder="College name">
+      </div>
+      <div>
+        <label style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.58);font-family:'Orbitron',sans-serif;display:block;margin-bottom:5px">SCORE</label>
+        <input class="rfi" id="seScore" type="number" placeholder="Score value">
+      </div>
+      <div>
+        <label style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.58);font-family:'Orbitron',sans-serif;display:block;margin-bottom:5px">GAME</label>
+        <input class="rfi" id="seGame" type="text" disabled style="opacity:.45">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px">
+      <button onclick="saveScoreEdit()" style="flex:1;background:linear-gradient(135deg,var(--c),#0080ff);border:none;color:#0A0F1C;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:800;letter-spacing:2px;padding:13px;border-radius:8px;cursor:none;transition:opacity .2s">💾 SAVE</button>
+      <button onclick="document.getElementById('scoreEditModal').style.display='none'" style="flex:1;background:transparent;border:2px solid rgba(255,255,255,.15);color:rgba(255,255,255,.45);font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:2px;padding:12px;border-radius:8px;cursor:none;transition:all .2s">CANCEL</button>
     </div>
   </div>
 </div>
@@ -764,10 +821,14 @@ async function loadGallery() {
         .order('ts', { ascending: false });
       if (error) {
         // Log exact error so user can see what's wrong in console
-        console.error('❌ Gallery Supabase error:', error.code, '|', error.message, '|', error.details, '|', error.hint);
-        // If table doesn't exist — show helpful message
-        if(error.code === '42P01' || error.message?.includes('does not exist')) {
-          console.error('📋 FIX: Create a "gallery" table in Supabase. See setup guide.');
+        const errCode = error?.code || error?.name || 'unknown';
+        const errMsg  = error?.message || String(error);
+        console.error('❌ Gallery Supabase error:', errCode, '|', errMsg);
+        if(errCode === '42P01' || errMsg.includes('does not exist')) {
+          console.error('📋 FIX: Create the "gallery" table in Supabase SQL Editor.');
+        }
+        if(errMsg.includes('DataCloneError') || errMsg.includes('postMessage') || errMsg.includes('Headers')) {
+          console.warn('⚠️ Fetch proxy conflict detected. This usually happens in sandboxed iframes (e.g. preview tools). Try opening the HTML file directly in Chrome/Edge instead.');
         }
         galPhotos = [];
       } else {
@@ -990,10 +1051,24 @@ function checkAdminPwd(){
     renderAdmin();
   } else {showToast('❌ Wrong password');document.getElementById('adminPwd').value=''}
 }
+function switchAdminTab(tab){
+  const isPhotos=tab==='photos';
+  document.getElementById('adminTabPhotos').style.display=isPhotos?'block':'none';
+  document.getElementById('adminTabScores').style.display=isPhotos?'none':'block';
+  const pbtn=document.getElementById('adminTab-photos');
+  const sbtn=document.getElementById('adminTab-scores');
+  pbtn.style.background=isPhotos?'rgba(0,240,255,.12)':'rgba(255,255,255,.04)';
+  pbtn.style.borderColor=isPhotos?'rgba(0,240,255,.4)':'rgba(255,255,255,.1)';
+  pbtn.style.color=isPhotos?'var(--c)':'rgba(255,255,255,.38)';
+  sbtn.style.background=!isPhotos?'rgba(255,215,0,.1)':'rgba(255,255,255,.04)';
+  sbtn.style.borderColor=!isPhotos?'rgba(255,215,0,.35)':'rgba(255,255,255,.1)';
+  sbtn.style.color=!isPhotos?'#ffd700':'rgba(255,255,255,.38)';
+  if(!isPhotos) renderAdminScores();
+}
 function renderAdmin(){
   const pending=galPhotos.filter(p=>p.status==='pending');
   const approved=galPhotos.filter(p=>p.status==='approved');
-  document.getElementById('adminStats').textContent=`${pending.length} pending · ${approved.length} approved · ${galPhotos.length} total`;
+  document.getElementById('adminStats').textContent=`📸 Photos: ${pending.length} pending · ${approved.length} approved · ${galPhotos.length} total  |  🏆 Scores: ${scores.length} entries`;
   document.getElementById('adminGrid').innerHTML=[...pending,...approved].map(p=>`
     <div class="admin-card">
       <img src="${p.src}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
@@ -1033,6 +1108,193 @@ async function adminAction(id,action){
   if(adminPwdWrap) adminPwdWrap.style.display='none';
   renderAdmin();
   showToast(action==='approved'?'✅ Photo approved!':'🗑️ Photo deleted');
+}
+
+/* ═══════════════════════════════════════════════
+   ADMIN — SCORE MANAGEMENT
+═══════════════════════════════════════════════ */
+function populateScoreGameFilter(){
+  const sel=document.getElementById('scFilterGame');
+  if(!sel||sel.options.length>1)return;
+  GAMES.forEach(g=>{
+    const o=document.createElement('option');
+    o.value=g.id;o.textContent=g.icon+' '+g.name;
+    sel.appendChild(o);
+  });
+}
+
+async function refreshAdminScores(){
+  showToast('↺ Refreshing scores...');
+  scores=await loadScores();
+  renderAdminScores();
+  renderLb(lbFilter);
+  renderCollegeLb();
+  showToast('✅ Scores refreshed');
+}
+
+function renderAdminScores(){
+  populateScoreGameFilter();
+  const filterGame=document.getElementById('scFilterGame')?.value||'all';
+  const search=(document.getElementById('scSearch')?.value||'').toLowerCase().trim();
+  const lowBetter=['reaction','slidePuzzle','timeEst'];
+
+  let list=[...scores];
+  if(filterGame!=='all') list=list.filter(s=>s.game===filterGame);
+  if(search) list=list.filter(s=>(s.name||'').toLowerCase().includes(search)||(s.college||'').toLowerCase().includes(search));
+  list.sort((a,b)=>b.ts>a.ts?1:-1);
+
+  const statsEl=document.getElementById('adminScoreStats');
+  if(statsEl) statsEl.textContent=`Showing ${list.length} of ${scores.length} total entries`;
+
+  const tbl=document.getElementById('adminScoreTable');
+  if(!tbl)return;
+  if(!list.length){
+    tbl.innerHTML='<tr><td colspan="7" style="padding:32px;text-align:center;color:rgba(255,255,255,.25);font-family:Orbitron,sans-serif;font-size:.68rem;letter-spacing:2px">NO SCORES FOUND</td></tr>';
+    return;
+  }
+
+  const thStyle='padding:9px 12px;font-family:"Orbitron",sans-serif;font-size:.58rem;letter-spacing:1.5px;color:rgba(0,240,255,.55);border-bottom:1px solid rgba(0,240,255,.12);text-align:left;white-space:nowrap';
+  const tdStyle='padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.76rem;vertical-align:middle';
+
+  tbl.innerHTML=`
+    <thead><tr>
+      <th style="${thStyle}">#</th>
+      <th style="${thStyle}">NAME</th>
+      <th style="${thStyle}">COLLEGE</th>
+      <th style="${thStyle}">GAME</th>
+      <th style="${thStyle}">SCORE</th>
+      <th style="${thStyle}">DATE</th>
+      <th style="${thStyle}">ACTIONS</th>
+    </tr></thead>
+    <tbody>${list.map((s,i)=>{
+      const g=GAMES.find(x=>x.id===s.game);
+      const sl=scoreLabel(s);
+      const dt=s.ts?new Date(s.ts).toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+      return `<tr id="scrow-${s.id}" style="transition:background .2s" onmouseenter="this.style.background='rgba(0,240,255,.03)'" onmouseleave="this.style.background=''">
+        <td style="${tdStyle};color:rgba(255,255,255,.25);font-family:Orbitron,sans-serif;font-size:.6rem">${i+1}</td>
+        <td style="${tdStyle};font-weight:600">${s.name||'—'}</td>
+        <td style="${tdStyle};color:rgba(255,255,255,.55)">${s.college||'—'}</td>
+        <td style="${tdStyle}"><span style="font-size:.9rem">${g?.icon||''}</span> <span style="font-family:Orbitron,sans-serif;font-size:.6rem;color:${g?.color||'var(--c)'};letter-spacing:.5px">${g?.name||s.game}</span></td>
+        <td style="${tdStyle};font-family:Orbitron,sans-serif;font-weight:700;color:${g?.color||'var(--c)'};font-size:.82rem">${sl}</td>
+        <td style="${tdStyle};font-size:.66rem;color:rgba(255,255,255,.3);white-space:nowrap">${dt}</td>
+        <td style="${tdStyle}">
+          <div style="display:flex;gap:6px">
+            <button onclick="openScoreEdit('${s.id}')" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:1px;padding:5px 10px;border-radius:4px;background:rgba(0,240,255,.09);border:1px solid rgba(0,240,255,.25);color:var(--c);cursor:none;transition:all .18s" onmouseenter="this.style.background='rgba(0,240,255,.18)'" onmouseleave="this.style.background='rgba(0,240,255,.09)'">✏ EDIT</button>
+            <button onclick="deleteScore('${s.id}')" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:1px;padding:5px 10px;border-radius:4px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.22);color:#ff6666;cursor:none;transition:all .18s" onmouseenter="this.style.background='rgba(255,68,68,.18)'" onmouseleave="this.style.background='rgba(255,68,68,.08)'">✕ DEL</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function openScoreEdit(id){
+  const s=scores.find(x=>x.id===id);
+  if(!s){showToast('❌ Score not found');return;}
+  const g=GAMES.find(x=>x.id===s.game);
+  document.getElementById('seId').value=s.id;
+  document.getElementById('seName').value=s.name||'';;
+  document.getElementById('seCollege').value=s.college||'';;
+  document.getElementById('seScore').value=s.score||0;
+  document.getElementById('seGame').value=(g?.icon||'')+' '+(g?.name||s.game);
+  document.getElementById('scoreEditModal').style.display='flex';
+}
+
+async function saveScoreEdit(){
+  const id=document.getElementById('seId').value;
+  const name=document.getElementById('seName').value.trim();
+  const college=document.getElementById('seCollege').value.trim();
+  const scoreVal=parseFloat(document.getElementById('seScore').value);
+  if(!name||!college||isNaN(scoreVal)){showToast('⚠ Fill all fields');return;}
+
+  // Update in memory
+  const idx=scores.findIndex(s=>s.id===id);
+  if(idx===-1){showToast('❌ Score not found');return;}
+  scores[idx].name=name;
+  scores[idx].college=college;
+  scores[idx].score=scoreVal;
+
+  // Update localStorage
+  try{
+    let local=[];
+    try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
+    const li=local.findIndex(s=>s.id===id);
+    if(li!==-1){local[li].name=name;local[li].college=college;local[li].score=scoreVal;}
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(local));
+  }catch(e){console.warn('localStorage update error:',e);}
+
+  // Update Supabase
+  if(window.__SB){
+    const{error}=await window.__SB.from('scores').update({name,college,score:scoreVal}).eq('id',id);
+    if(error){console.warn('Supabase score update error:',error);showToast('⚠ Saved locally — Supabase sync failed: '+error.message);}
+    else{showToast('✅ Score updated!');}
+  } else {
+    showToast('✅ Score updated locally!');
+  }
+
+  document.getElementById('scoreEditModal').style.display='none';
+  renderAdminScores();
+  renderLb(lbFilter);
+  renderCollegeLb();
+  renderGameCards();
+}
+
+async function deleteScore(id){
+  if(!confirm('Delete this score entry? This cannot be undone.'))return;
+
+  scores=scores.filter(s=>s.id!==id);
+
+  // Remove from localStorage
+  try{
+    let local=[];
+    try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
+    local=local.filter(s=>s.id!==id);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(local));
+  }catch(e){}
+
+  // Remove from Supabase
+  if(window.__SB){
+    const{error}=await window.__SB.from('scores').delete().eq('id',id);
+    if(error) console.warn('Supabase score delete error:',error);
+  }
+
+  renderAdminScores();
+  renderLb(lbFilter);
+  renderCollegeLb();
+  renderGameCards();
+  showToast('🗑 Score deleted');
+}
+
+async function clearAllScoresConfirm(){
+  const filterGame=document.getElementById('scFilterGame')?.value||'all';
+  const label=filterGame==='all'?'ALL scores':'all scores for this game';
+  if(!confirm('⚠ This will permanently delete '+label+'. Are you sure?'))return;
+
+  if(filterGame==='all'){
+    scores=[];
+    try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+    if(window.__SB){
+      // Delete all rows
+      await window.__SB.from('scores').delete().neq('id','__never__');
+    }
+    showToast('🗑 All scores cleared');
+  } else {
+    scores=scores.filter(s=>s.game!==filterGame);
+    try{
+      let local=[];
+      try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
+      local=local.filter(s=>s.game!==filterGame);
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(local));
+    }catch(e){}
+    if(window.__SB){
+      await window.__SB.from('scores').delete().eq('game',filterGame);
+    }
+    showToast('🗑 Scores cleared for '+filterGame);
+  }
+
+  renderAdminScores();
+  renderLb(lbFilter);
+  renderCollegeLb();
+  renderGameCards();
 }
 
 function copyFixSQL(){
@@ -1818,13 +2080,26 @@ function handleReg(){}
      Images stored in Cloudinary · Metadata stored in Supabase
      So ALL devices see the same gallery!
      ════════════════════════════════════════════════════════════════ -->
+<script>
+/* Capture native fetch BEFORE Supabase SDK loads.
+   Some environments (sandboxed iframes, service workers) replace window.fetch
+   with a proxy that can't clone Headers objects — causing DataCloneError.
+   Passing the raw native fetch to createClient bypasses the proxy entirely. */
+window.__nativeFetch = (function(){
+  try { return window.fetch.bind(window); } catch(e) { return window.fetch; }
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const SUPABASE_URL  = 'https://zmyshcsnbxewstlqhdtt.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteXNoY3NuYnhld3N0bHFoZHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTc5NTAsImV4cCI6MjA4OTM5Mzk1MH0.yXXdFONiYPgnxyzMgH4m9ZP7YFVScF0NSKk1iymY7cI';
 
   try {
-    window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+      global: {
+        fetch: window.__nativeFetch || window.fetch  // bypass any fetch proxy
+      }
+    });
     console.log('✅ Supabase ready');
   } catch(e) {
     window.__SB = null;
@@ -2077,9 +2352,9 @@ let rStep=1, rSelEvs=[], rQrDone=false;
   if(RCFG.UPI_ID==='voyce26@upi') checks.push('⚠️ UPI ID is still a placeholder — update RCFG.UPI_ID in the script');
   if(!SHEETS_WEBHOOK) checks.push('⚠️ Google Sheets webhook not set — registrations won\'t reach Sheets');
   if(checks.length){
-    console.group('%c VOYCE\'26 SETUP ISSUES','color:#ff9500;font-size:14px;font-weight:bold');
+    console.warn('=== VOYCE\'26 SETUP ISSUES ===');
     checks.forEach(c=>console.warn(c));
-    console.groupEnd();
+    console.warn('================================');
   }
   // Show visible red banner if UPI is still placeholder
   if(RCFG.UPI_ID==='voyce26@upi'){
