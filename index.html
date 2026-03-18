@@ -425,11 +425,11 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
   <p class="reveal" style="color:rgba(255,255,255,.42);font-size:.88rem;margin-bottom:28px;max-width:540px">Relive the moments! Upload your VOYCE'26 memories and browse photos from the event.</p>
 
   <!-- Upload trigger -->
-  <div class="upload-trigger reveal" onclick="openUploadModal()" id="galUploadTrigger">
+  <div class="upload-trigger reveal" onclick="openUploadModal()">
     <div style="text-align:center">
-      <div style="font-size:2.5rem;margin-bottom:8px;animation:floatY 3s ease-in-out infinite" id="galUploadIcon">📤</div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:.78rem;color:var(--c);letter-spacing:2px;margin-bottom:4px" id="galUploadTitle">UPLOAD YOUR PHOTO</div>
-      <div style="font-size:.72rem;color:rgba(255,255,255,.32)" id="galUploadSub">Share your VOYCE'26 memories with everyone</div>
+      <div style="font-size:2.5rem;margin-bottom:8px;animation:floatY 3s ease-in-out infinite">📤</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:.78rem;color:var(--c);letter-spacing:2px;margin-bottom:4px">UPLOAD YOUR PHOTO</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.32)">Share your VOYCE'26 memories with everyone</div>
     </div>
   </div>
 
@@ -450,8 +450,7 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
   <div id="galEmpty" style="display:none;text-align:center;padding:48px;font-family:'Orbitron',sans-serif;font-size:.72rem;color:rgba(255,255,255,.18);letter-spacing:2px">NO PHOTOS YET · BE THE FIRST TO UPLOAD</div>
 
   <!-- Admin button -->
-  <div style="text-align:right;margin-top:8px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-    <button onclick="openGalleryQrPoster()" style="background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.25);color:var(--c);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 14px;border-radius:5px;cursor:none;transition:all .2s" onmouseenter="this.style.background='rgba(0,240,255,.16)'" onmouseleave="this.style.background='rgba(0,240,255,.08)'">📱 VIEW QR POSTER</button>
+  <div style="text-align:right;margin-top:8px">
     <button onclick="openAdmin()" style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.25);color:rgba(255,149,0,.7);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 14px;border-radius:5px;cursor:none;transition:all .2s" onmouseenter="this.style.background='rgba(255,149,0,.16)'" onmouseleave="this.style.background='rgba(255,149,0,.08)'">⚙ ADMIN PANEL</button>
   </div>
 </div></section>
@@ -1742,90 +1741,17 @@ function bonus(r){return r===1?20:r===2?0:-10}
      ════════════════════════════════════════════════════════════════ -->
 
 <!-- QR Scanner Gate Modal -->
-<!-- Gallery QR Poster Modal (for organizers to print & post at college) -->
-<div id="galleryQrPosterModal" style="display:none;position:fixed;inset:0;z-index:750;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeGalleryQrPoster()">
-  <div style="background:#0d1526;border:1px solid rgba(0,240,255,.25);border-radius:22px;padding:32px 28px;width:min(460px,100%);position:relative;overflow:hidden;text-align:center;animation:gateIn .35s cubic-bezier(.22,1,.36,1) both">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--c),transparent)"></div>
-    <button onclick="closeGalleryQrPoster()" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:.9rem;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .2s" onmouseenter="this.style.background='rgba(255,68,68,.15)';this.style.color='#ff6666'" onmouseleave="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.4)'">✕</button>
-    <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:.9rem;color:var(--c);letter-spacing:2px;margin-bottom:4px">📱 GALLERY QR POSTER</div>
-    <div style="font-size:.72rem;color:rgba(255,255,255,.38);margin-bottom:20px;line-height:1.7">Print this QR and stick it at the college.<br>Students scan it with their phone camera → upload unlocks.</div>
-    <!-- QR code renders here -->
-    <div style="background:#fff;border-radius:16px;padding:16px;display:inline-block;box-shadow:0 0 40px rgba(0,240,255,.18);margin-bottom:16px">
-      <div id="posterQrBox" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center"><div style="font-size:.7rem;color:#999">Generating...</div></div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:.52rem;letter-spacing:1.5px;color:#444;margin-top:8px">VOYCE'26 · SCAN TO UPLOAD</div>
-    </div>
-    <!-- URL display -->
-    <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.15);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-      <div style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:6px">QR LINKS TO THIS URL</div>
-      <div id="posterQrUrl" style="font-size:.68rem;color:#fff;word-break:break-all;font-family:monospace;line-height:1.6"></div>
-    </div>
-    <!-- How it works -->
-    <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.18);border-radius:9px;padding:12px 16px;margin-bottom:18px;text-align:left">
-      <div style="font-family:'Orbitron',sans-serif;font-size:.58rem;color:rgba(34,197,94,.65);letter-spacing:2px;margin-bottom:8px">HOW IT WORKS</div>
-      <div style="font-size:.74rem;color:rgba(255,255,255,.5);line-height:2">
-        <div>📍 Print this QR and post it at the venue</div>
-        <div>📱 Student opens phone camera → scans it</div>
-        <div>🌐 Website opens automatically in browser</div>
-        <div>✅ Upload unlocks instantly — no typing needed!</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px">
-      <button onclick="printGalleryQr()" style="flex:1;background:linear-gradient(135deg,var(--c),#0080ff);border:none;color:#0A0F1C;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:800;letter-spacing:2px;padding:13px;border-radius:9px;cursor:none;box-shadow:0 0 22px rgba(0,240,255,.28);text-transform:uppercase">🖨️ PRINT QR</button>
-      <button onclick="closeGalleryQrPoster()" style="flex:1;background:transparent;border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4);font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:2px;padding:13px;border-radius:9px;cursor:none;transition:all .25s;text-transform:uppercase" onmouseenter="this.style.borderColor='rgba(255,255,255,.26)';this.style.color='#fff'" onmouseleave="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='rgba(255,255,255,.4)'">CLOSE</button>
-    </div>
-  </div>
-</div>
-
-<style>
-@keyframes bounceIn{0%{transform:scale(.3);opacity:0}50%{transform:scale(1.12)}70%{transform:scale(.95)}100%{transform:scale(1);opacity:1}}
-@keyframes gateIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-</style>
-
 <!-- Registration Overlay (slide-in from right) -->
 <!-- [REGISTRATION_OVERLAY_PLACEHOLDER] -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════
-   GALLERY — PHYSICAL QR POSTER VERIFICATION
-   ────────────────────────────────────────────────────────────────
-   The QR poster is printed and placed at college.
-   Students scan it with their PHONE CAMERA (no in-app scanner).
-   The QR encodes: https://yoursite.com?verify=voyce26gallery
-   Phone camera opens the URL → this page loads → upload unlocks.
+   GALLERY UPLOAD — simple direct open, no QR needed
    ════════════════════════════════════════════════════════════════ */
-const GALLERY_TOKEN = 'voyce26gallery';
-const GALLERY_VERIFIED_KEY = 'voyce26_galVerified';
 
-// Runs on every page load — checks if URL has ?verify=TOKEN
-// This fires when student opens site via QR scan
-(function(){
-  try {
-    const p = new URLSearchParams(window.location.search);
-    if(p.get('verify') === GALLERY_TOKEN){
-      sessionStorage.setItem(GALLERY_VERIFIED_KEY,'1');
-      // Clean the URL (remove ?verify=... from address bar)
-      history.replaceState(null,'', window.location.pathname+(window.location.hash||''));
-      setTimeout(()=>showToast('✅ Verified! Gallery upload unlocked.'),800);
-    }
-  } catch(e){}
-})();
-
-function isGalleryVerified(){
-  return sessionStorage.getItem(GALLERY_VERIFIED_KEY)==='1';
-}
-
-/* Gallery upload modal */
+/* Open upload modal directly — no verification needed */
 function openUploadModal(){
-  if(isGalleryVerified()){
-    document.getElementById('uploadModal').style.display='flex';
-  } else {
-    // Not verified — show a friendly message
-    showToast('🔒 Scan the QR poster at college to unlock upload!');
-    // Pulse the upload trigger to draw attention
-    const t=document.getElementById('galUploadTrigger');
-    if(t){ t.style.boxShadow='0 0 0 2px rgba(255,149,0,.6),0 0 28px rgba(255,149,0,.2)'; setTimeout(()=>t.style.boxShadow='',1800); }
-  }
+  document.getElementById('uploadModal').style.display='flex';
 }
 function closeUploadModal(){
   document.getElementById('uploadModal').style.display='none';
@@ -1836,94 +1762,8 @@ function closeUploadModal(){
   document.getElementById('upCaption').value='';
 }
 
-/* Update upload trigger icon/text based on verification state */
-function updateUploadTriggerUI(){
-  const icon=document.getElementById('galUploadIcon');
-  const title=document.getElementById('galUploadTitle');
-  const sub=document.getElementById('galUploadSub');
-  const trigger=document.getElementById('galUploadTrigger');
-  if(!icon) return;
-  if(isGalleryVerified()){
-    icon.textContent='📤';
-    icon.style.animation='floatY 3s ease-in-out infinite';
-    if(title){title.textContent='UPLOAD YOUR PHOTO';title.style.color='var(--c)';}
-    if(sub){sub.textContent="Share your VOYCE'26 memories with everyone";sub.style.color='rgba(255,255,255,.32)';}
-    if(trigger){trigger.style.borderColor='';trigger.style.background='';}
-  } else {
-    icon.textContent='🔒';
-    icon.style.animation='none';
-    if(title){title.textContent='SCAN QR POSTER TO UPLOAD';title.style.color='rgba(255,149,0,.8)';}
-    if(sub){sub.textContent='Find the QR poster at the venue & scan it with your phone camera';sub.style.color='rgba(255,149,0,.42)';}
-    if(trigger){trigger.style.borderColor='rgba(255,149,0,.22)';trigger.style.background='rgba(255,149,0,.03)';}
-  }
-}
-
-/* QR Poster modal — organizers open this, print the QR, post at college */
-let _posterQrBuilt=false;
-function openGalleryQrPoster(){
-  document.getElementById('galleryQrPosterModal').style.display='flex';
-  if(!_posterQrBuilt){
-    // Always use the live GitHub Pages URL so QR works regardless of where page is opened
-    const liveBase='https://akashas1102.github.io/voyce26/';
-    const url=liveBase+'?verify='+GALLERY_TOKEN;
-    document.getElementById('posterQrUrl').textContent=url;
-    const box=document.getElementById('posterQrBox');
-    box.innerHTML='';
-    try{
-      new QRCode(box,{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-      _posterQrBuilt=true;
-    }catch(e){
-      box.innerHTML='<div style="font-size:.65rem;color:#999;padding:10px;text-align:center;line-height:1.6">Error generating QR</div>';
-    }
-  }
-}
-function closeGalleryQrPoster(){
-  document.getElementById('galleryQrPosterModal').style.display='none';
-}
-function printGalleryQr(){
-  const box=document.getElementById('posterQrBox');
-  const url=document.getElementById('posterQrUrl').textContent;
-  const img=box.querySelector('img')||box.querySelector('canvas');
-  let src='';
-  if(img&&img.tagName==='CANVAS') src=img.toDataURL();
-  else if(img) src=img.src;
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>VOYCE'26 Gallery QR</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',sans-serif;background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh}
-    .card{text-align:center;border:3px solid #00F0FF;border-radius:20px;padding:36px 40px;max-width:360px;background:#0A0F1C;color:#fff}
-    h1{font-size:2.2rem;font-weight:900;color:#00F0FF;letter-spacing:4px;margin-bottom:4px}
-    .sub{font-size:.78rem;letter-spacing:2px;color:rgba(255,255,255,.45);margin-bottom:22px}
-    img{border-radius:12px;border:4px solid #fff;display:block;margin:0 auto 18px;width:210px;height:210px}
-    .badge{display:inline-block;background:#00F0FF;color:#0A0F1C;font-weight:800;font-size:.72rem;padding:6px 20px;border-radius:50px;margin-bottom:16px;letter-spacing:1.5px}
-    .inst{font-size:.8rem;color:rgba(255,255,255,.5);line-height:2;margin-bottom:16px}
-    .inst span{color:#22c55e;font-weight:700}
-    .url{font-size:.56rem;color:rgba(0,240,255,.45);word-break:break-all;font-family:monospace;border-top:1px solid rgba(255,255,255,.08);padding-top:10px;margin-top:4px}
-  </style></head><body>
-  <div class="card">
-    <h1>VOYCE'26</h1>
-    <div class="sub">NATIONAL LEVEL TECHNICAL SYMPOSIUM</div>
-    ${src?`<img src="${src}" alt="QR Code">`:''}
-    <div class="badge">📸 UPLOAD YOUR MEMORIES</div>
-    <div class="inst">
-      1. Open your phone <span>Camera app</span><br>
-      2. Point at this QR code<br>
-      3. Tap the link that appears<br>
-      4. Gallery upload unlocks instantly ✅
-    </div>
-    <div class="url">${url}</div>
-  </div>
-  <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
-  w.document.close();
-}
-
 /* Override old handleReg stub */
 function handleReg(){}
-
-/* updateUploadTriggerUI called here — gallery loads after Supabase */
-updateUploadTriggerUI();
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
