@@ -692,46 +692,68 @@ async function loadGallery() {
         .from('gallery')
         .select('*')
         .order('ts', { ascending: false });
-      if (error) throw error;
-      // Parse likedby from JSON string back to array
-      galPhotos = (data || []).map(p => ({
-        ...p,
-        likedBy: Array.isArray(p.likedby) ? p.likedby :
-                 (typeof p.likedby === 'string' ? JSON.parse(p.likedby || '[]') : [])
-      }));
+      if (error) {
+        // Log exact error so user can see what's wrong in console
+        console.error('❌ Gallery Supabase error:', error.code, '|', error.message, '|', error.details, '|', error.hint);
+        // If table doesn't exist — show helpful message
+        if(error.code === '42P01' || error.message?.includes('does not exist')) {
+          console.error('📋 FIX: Create a "gallery" table in Supabase. See setup guide.');
+        }
+        galPhotos = [];
+      } else {
+        galPhotos = (data || []).map(p => ({
+          ...p,
+          likedBy:    Array.isArray(p.likedby) ? p.likedby :
+                      (typeof p.likedby === 'string' ? tryParseJSON(p.likedby) : []),
+          uploadedBy: p.uploadedby || '',
+        }));
+        console.log('✅ Gallery loaded:', galPhotos.length, 'photos from Supabase');
+      }
     } else {
-      console.warn('Supabase not ready — gallery empty until Supabase loads');
+      console.warn('⚠️ Supabase not ready yet — gallery will load shortly');
       galPhotos = [];
     }
   } catch(e) {
-    console.warn('Gallery load error:', e);
+    console.error('❌ Gallery load exception:', e.message || e.code || JSON.stringify(e));
     galPhotos = [];
   }
   renderGallery();
+}
+
+function tryParseJSON(str) {
+  try { return JSON.parse(str || '[]'); } catch(e) { return []; }
 }
 
 async function saveGallery() {} // no-op — all ops go direct to Supabase
 
 /* Add photo metadata to Supabase after image uploaded to Cloudinary */
 async function addGalleryPhoto(photo) {
+  const myId = getMyId();
+  photo.uploadedBy = myId;
+
   if (window.__SB) {
     const { data, error } = await window.__SB
       .from('gallery')
       .insert([{
-        name:    photo.name,
-        college: photo.college,
-        event:   photo.event   || 'general',
-        caption: photo.caption || '',
-        src:     photo.src,      // Cloudinary URL
-        likes:   0,
-        likedby: '[]',
-        status:  'pending',
-        ts:      photo.ts,
+        name:       photo.name,
+        college:    photo.college,
+        event:      photo.event   || 'general',
+        caption:    photo.caption || '',
+        src:        photo.src,
+        likes:      0,
+        likedby:    '[]',
+        status:     'pending',
+        uploadedby: myId,
+        ts:         photo.ts,
       }])
       .select()
       .single();
-    if (error) throw error;
-    photo.id     = data.id;
+    if (error) {
+      console.error('Supabase gallery insert error:', error);
+      throw new Error('Failed to save to gallery: ' + error.message);
+    }
+    // Use the real Supabase id
+    photo.id = data.id;
     photo.likedBy = [];
   }
   galPhotos.unshift(photo);
@@ -816,20 +838,24 @@ function toggleTopLiked(){galSortTopLiked=!galSortTopLiked;document.getElementBy
 
 function renderGallery(){
   const grid=document.getElementById('galGrid'),empty=document.getElementById('galEmpty');
-  let filtered=galPhotos.filter(p=>p.status==='approved'||(p.status==='pending'&&false));
-  // show approved only
-  filtered=galPhotos.filter(p=>p.status==='approved');
+  const myId=getMyId();
+  // Show approved photos to everyone + pending photos to the person who uploaded them
+  let filtered=galPhotos.filter(p=>
+    p.status==='approved' ||
+    (p.status==='pending' && p.uploadedBy===myId)
+  );
   if(galFilter!=='all')filtered=filtered.filter(p=>p.event===galFilter);
-  if(galSortTopLiked)filtered=[...filtered].sort((a,b)=>b.likes-a.likes);
+  if(galSortTopLiked)filtered=[...filtered].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else filtered=[...filtered].sort((a,b)=>b.ts>a.ts?1:-1);
   if(!filtered.length){grid.innerHTML='';empty.style.display='block';return}
   empty.style.display='none';
-  const myId=getMyId();
   grid.innerHTML=filtered.map((p,i)=>{
     const liked=p.likedBy&&p.likedBy.includes(myId);
     const evLabel=p.event&&p.event!=='general'?p.event.split('-').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '):'';
-    return `<div class="gal-card" style="animation-delay:${i*.06}s" onclick="openLightbox(${galPhotos.indexOf(p)})">
-      <img src="${p.src}" class="gal-img" alt="${p.name}" loading="lazy">
+    const isPending=p.status==='pending';
+    return `<div class="gal-card" style="animation-delay:${i*.06}s;${isPending?'opacity:.65':''}">
+      <img src="${p.src}" class="gal-img" alt="${p.name}" loading="lazy" onclick="openLightbox(${galPhotos.indexOf(p)})">
+      ${isPending?`<div class="gal-pending">⏳ PENDING</div>`:''}
       <div class="gal-info">
         <div class="gal-name">${p.name}</div>
         <div class="gal-meta">🏫 ${p.college} · ${new Date(p.ts).toLocaleDateString()}</div>
@@ -844,6 +870,9 @@ function renderGallery(){
     </div>`;
   }).join('');
 }
+
+// Auto-refresh gallery every 30 seconds so all devices see new photos
+setInterval(()=>{ if(window.__SB) loadGallery(); }, 30000);
 
 let myId=null;
 function getMyId(){if(!myId){myId=localStorage.getItem('voyce_uid')||('u'+Date.now());localStorage.setItem('voyce_uid',myId)}return myId}
@@ -912,7 +941,10 @@ async function adminAction(id,action){
     photo.status=action;
     await updateGalleryPhoto(photo);
   }
-  renderAdmin();renderGallery();showToast(action==='approved'?'✅ Photo approved!':'🗑️ Photo deleted');
+  // Reload from Supabase so all devices get the update
+  await loadGallery();
+  renderAdmin();
+  showToast(action==='approved'?'✅ Photo approved! Visible to all devices now.':'🗑️ Photo deleted');
 }
 
 /* Toast */
