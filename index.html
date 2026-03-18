@@ -736,9 +736,8 @@ async function loadGallery() {
       } else {
         galPhotos = (data || []).map(p => ({
           ...p,
-          likedBy:    Array.isArray(p.likedby) ? p.likedby :
-                      (typeof p.likedby === 'string' ? tryParseJSON(p.likedby) : []),
-          uploadedBy: p.uploadedby || '',
+          likedBy: Array.isArray(p.likedby) ? p.likedby :
+                   (typeof p.likedby === 'string' ? tryParseJSON(p.likedby) : []),
         }));
         console.log('✅ Gallery loaded:', galPhotos.length, 'photos from Supabase');
       }
@@ -761,23 +760,19 @@ async function saveGallery() {} // no-op — all ops go direct to Supabase
 
 /* Add photo metadata to Supabase after image uploaded to Cloudinary */
 async function addGalleryPhoto(photo) {
-  const myId = getMyId();
-  photo.uploadedBy = myId;
-
   if (window.__SB) {
     const { data, error } = await window.__SB
       .from('gallery')
       .insert([{
-        name:       photo.name,
-        college:    photo.college,
-        event:      photo.event   || 'general',
-        caption:    photo.caption || '',
-        src:        photo.src,
-        likes:      0,
-        likedby:    '[]',
-        status:     'pending',
-        uploadedby: myId,
-        ts:         photo.ts,
+        name:    photo.name,
+        college: photo.college,
+        event:   photo.event   || 'general',
+        caption: photo.caption || '',
+        src:     photo.src,
+        likes:   0,
+        likedby: '[]',
+        status:  'pending',
+        ts:      photo.ts,
       }])
       .select()
       .single();
@@ -785,7 +780,6 @@ async function addGalleryPhoto(photo) {
       console.error('Supabase gallery insert error:', error);
       throw new Error('Failed to save to gallery: ' + error.message);
     }
-    // Use the real Supabase id
     photo.id = data.id;
     photo.likedBy = [];
   }
@@ -885,11 +879,8 @@ function toggleTopLiked(){galSortTopLiked=!galSortTopLiked;document.getElementBy
 function renderGallery(){
   const grid=document.getElementById('galGrid'),empty=document.getElementById('galEmpty');
   const myId=getMyId();
-  // Show approved photos to everyone + pending photos to the person who uploaded them
-  let filtered=galPhotos.filter(p=>
-    p.status==='approved' ||
-    (p.status==='pending' && p.uploadedBy===myId)
-  );
+  // Show only approved photos — admin approves pending ones
+  let filtered = galPhotos.filter(p => p.status === 'approved');
   if(galFilter!=='all')filtered=filtered.filter(p=>p.event===galFilter);
   if(galSortTopLiked)filtered=[...filtered].sort((a,b)=>(b.likes||0)-(a.likes||0));
   else filtered=[...filtered].sort((a,b)=>b.ts>a.ts?1:-1);
@@ -898,10 +889,8 @@ function renderGallery(){
   grid.innerHTML=filtered.map((p,i)=>{
     const liked=p.likedBy&&p.likedBy.includes(myId);
     const evLabel=p.event&&p.event!=='general'?p.event.split('-').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '):'';
-    const isPending=p.status==='pending';
-    return `<div class="gal-card" style="animation-delay:${i*.06}s;${isPending?'opacity:.65':''}">
-      <img src="${p.src}" class="gal-img" alt="${p.name}" loading="lazy" onclick="openLightbox(${galPhotos.indexOf(p)})">
-      ${isPending?`<div class="gal-pending">⏳ PENDING</div>`:''}
+    return `<div class="gal-card" style="animation-delay:${i*.06}s" onclick="openLightbox(${galPhotos.indexOf(p)})">
+      <img src="${p.src}" class="gal-img" alt="${p.name}" loading="lazy">
       <div class="gal-info">
         <div class="gal-name">${p.name}</div>
         <div class="gal-meta">🏫 ${p.college} · ${new Date(p.ts).toLocaleDateString()}</div>
@@ -955,9 +944,6 @@ function checkAdminPwd(){
   if(document.getElementById('adminPwd').value==='voyce2026'){
     document.getElementById('adminPwdWrap').style.display='none';
     document.getElementById('adminContent').style.display='block';
-    // Also unlock gallery upload for admin
-    sessionStorage.setItem(GALLERY_VERIFIED_KEY,'1');
-    updateUploadTriggerUI();
     renderAdmin();
   } else {showToast('❌ Wrong password');document.getElementById('adminPwd').value=''}
 }
