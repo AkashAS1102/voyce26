@@ -2349,7 +2349,7 @@ let rStep=1, rSelEvs=[], rQrDone=false;
 /* ── STARTUP CHECKS ─────────────────────────────────────────── */
 (function runStartupChecks(){
   const checks=[];
-  if(RCFG.UPI_ID==='voyce26@upi') checks.push('⚠️ UPI ID is still a placeholder — update RCFG.UPI_ID in the script');
+  if(RCFG.UPI_ID==='new123@ybl') checks.push('⚠️ UPI ID is still a placeholder — update RCFG.UPI_ID in the script');
   if(!SHEETS_WEBHOOK) checks.push('⚠️ Google Sheets webhook not set — registrations won\'t reach Sheets');
   if(checks.length){
     console.warn('=== VOYCE\'26 SETUP ISSUES ===');
@@ -2357,7 +2357,7 @@ let rStep=1, rSelEvs=[], rQrDone=false;
     console.warn('================================');
   }
   // Show visible red banner if UPI is still placeholder
-  if(RCFG.UPI_ID==='voyce26@upi'){
+  if(RCFG.UPI_ID==='new12ddgfd@ybl'){
     const banner=document.createElement('div');
     banner.id='upi-warning-banner';
     banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7f1d1d;color:#fca5a5;font-family:"Orbitron",sans-serif;font-size:.72rem;letter-spacing:1.5px;padding:10px 20px;text-align:center;border-bottom:2px solid #ef4444';
