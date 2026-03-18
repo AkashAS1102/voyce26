@@ -653,31 +653,27 @@ const GAL_KEY='voyce26_gallery_v1';
 let galPhotos=[],galFilter='all',galSortTopLiked=false;
 
 /* ── CLOUDINARY CONFIG ─────────────────────────────────────────
-   Free plan: 25 GB storage, 25 GB bandwidth/month.
-   1. Sign up at cloudinary.com
-   2. Copy your Cloud Name from the dashboard
-   3. Settings → Upload → Upload Presets → Add preset
-      Name: voyce26_gallery  |  Signing: Unsigned
+   Images stored in Cloudinary (25 GB free)
+   Metadata stored in Supabase gallery table (shared across devices)
    ─────────────────────────────────────────────────────────── */
-const CLOUDINARY_CLOUD  = 'ddpntpbxg';    // Cloudinary cloud name
-const CLOUDINARY_PRESET = 'voyce26_gallery';    // ← your unsigned preset name
+const CLOUDINARY_CLOUD  = 'ddpntpbxg';
+const CLOUDINARY_PRESET = 'voyce26_gallery';
 
-/* Upload gallery image to Cloudinary, return secure URL */
+/* Upload image to Cloudinary → returns permanent public URL */
 async function uploadToCloudinary(dataURL) {
-  if (CLOUDINARY_CLOUD === 'YOUR_CLOUD_NAME') {
-    return dataURL; // not configured — store locally as fallback
-  }
   const blob = dataURLtoBlob(dataURL);
   const fd = new FormData();
   fd.append('file', blob);
   fd.append('upload_preset', CLOUDINARY_PRESET);
-  fd.append('folder', 'voyce26_gallery');
+  console.log('📤 Uploading to Cloudinary...', CLOUDINARY_CLOUD, CLOUDINARY_PRESET);
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
     { method: 'POST', body: fd }
   );
   const json = await res.json();
-  if (!json.secure_url) throw new Error('Cloudinary upload failed');
+  console.log('☁️ Cloudinary response:', json);
+  if (json.error) throw new Error('Cloudinary: ' + json.error.message);
+  if (!json.secure_url) throw new Error('Cloudinary: no URL returned');
   return json.secure_url;
 }
 
@@ -688,37 +684,86 @@ function dataURLtoBlob(dataURL) {
   return new Blob([u], {type: mime});
 }
 
-/* Load gallery photos from localStorage */
+/* Load gallery from Supabase — same data on every device */
 async function loadGallery() {
   try {
-    const saved = localStorage.getItem(GAL_KEY);
-    galPhotos = saved ? JSON.parse(saved) : [];
-  } catch(e) { galPhotos = []; }
+    if (window.__SB) {
+      const { data, error } = await window.__SB
+        .from('gallery')
+        .select('*')
+        .order('ts', { ascending: false });
+      if (error) throw error;
+      // Parse likedby from JSON string back to array
+      galPhotos = (data || []).map(p => ({
+        ...p,
+        likedBy: Array.isArray(p.likedby) ? p.likedby :
+                 (typeof p.likedby === 'string' ? JSON.parse(p.likedby || '[]') : [])
+      }));
+    } else {
+      console.warn('Supabase not ready — gallery empty until Supabase loads');
+      galPhotos = [];
+    }
+  } catch(e) {
+    console.warn('Gallery load error:', e);
+    galPhotos = [];
+  }
   renderGallery();
 }
 
-/* Save gallery photos to localStorage */
-async function saveGallery() {
-  try { localStorage.setItem(GAL_KEY, JSON.stringify(galPhotos)); } catch(e) {}
-}
+async function saveGallery() {} // no-op — all ops go direct to Supabase
 
-/* Add a new photo (image to Cloudinary, metadata to localStorage) */
+/* Add photo metadata to Supabase after image uploaded to Cloudinary */
 async function addGalleryPhoto(photo) {
+  if (window.__SB) {
+    const { data, error } = await window.__SB
+      .from('gallery')
+      .insert([{
+        name:    photo.name,
+        college: photo.college,
+        event:   photo.event   || 'general',
+        caption: photo.caption || '',
+        src:     photo.src,      // Cloudinary URL
+        likes:   0,
+        likedby: '[]',
+        status:  'pending',
+        ts:      photo.ts,
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    photo.id     = data.id;
+    photo.likedBy = [];
+  }
   galPhotos.unshift(photo);
-  await saveGallery();
 }
 
-/* Update a photo in localStorage */
+/* Update likes or status in Supabase */
 async function updateGalleryPhoto(photo) {
+  if (window.__SB) {
+    const { error } = await window.__SB
+      .from('gallery')
+      .update({
+        likes:   photo.likes  || 0,
+        likedby: JSON.stringify(photo.likedBy || []),
+        status:  photo.status,
+      })
+      .eq('id', photo.id);
+    if (error) console.warn('updateGalleryPhoto error:', error);
+  }
   const idx = galPhotos.findIndex(p => String(p.id) === String(photo.id));
   if (idx !== -1) galPhotos[idx] = photo;
-  await saveGallery();
 }
 
-/* Delete a photo from localStorage */
+/* Delete photo from Supabase */
 async function deleteGalleryPhoto(photo) {
+  if (window.__SB) {
+    const { error } = await window.__SB
+      .from('gallery')
+      .delete()
+      .eq('id', photo.id);
+    if (error) console.warn('deleteGalleryPhoto error:', error);
+  }
   galPhotos = galPhotos.filter(p => String(p.id) !== String(photo.id));
-  await saveGallery();
 }
 
 
@@ -759,7 +804,7 @@ async function doUpload(){
     showToast('📤 Photo submitted for review!');
   } catch(e) {
     console.error('Upload error:', e);
-    showToast('❌ Upload failed. Check Cloudinary config.');
+    showToast('❌ ' + (e.message || 'Upload failed'));
   } finally {
     if(uploadBtn){ uploadBtn.disabled=false; uploadBtn.textContent='📤 Upload Memory'; }
   }
@@ -835,6 +880,9 @@ function checkAdminPwd(){
   if(document.getElementById('adminPwd').value==='voyce2026'){
     document.getElementById('adminPwdWrap').style.display='none';
     document.getElementById('adminContent').style.display='block';
+    // Also unlock gallery upload for admin
+    sessionStorage.setItem(GALLERY_VERIFIED_KEY,'1');
+    updateUploadTriggerUI();
     renderAdmin();
   } else {showToast('❌ Wrong password');document.getElementById('adminPwd').value=''}
 }
@@ -873,8 +921,7 @@ function showToast(msg){
   t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
 }
 
-// init gallery
-loadGallery();
+// gallery init happens after Supabase block below
 </script>
 <script>
 /* ═══════════════ GAME ENGINE — PROGRESSIVE DIFFICULTY ══════════
@@ -1796,17 +1843,17 @@ function printGalleryQr(){
 /* Override old handleReg stub */
 function handleReg(){}
 
-/* Init */
-loadGallery();
+/* updateUploadTriggerUI called here — gallery loads after Supabase */
 updateUploadTriggerUI();
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
-     SUPABASE — GAME SCORES ONLY
+     SUPABASE — GAME SCORES + GALLERY METADATA
+     Images stored in Cloudinary · Metadata stored in Supabase
+     So ALL devices see the same gallery!
      ════════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Real Supabase credentials
   const SUPABASE_URL  = 'https://zmyshcsnbxewstlqhdtt.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteXNoY3NuYnhld3N0bHFoZHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTc5NTAsImV4cCI6MjA4OTM5Mzk1MH0.yXXdFONiYPgnxyzMgH4m9ZP7YFVScF0NSKk1iymY7cI';
 
@@ -1818,8 +1865,9 @@ updateUploadTriggerUI();
     console.warn('Supabase error:', e);
   }
 
-  // Init games AFTER Supabase so loadScores can sync cloud data
-  initGames();
+  // Init both AFTER Supabase is ready
+  initGames();      // loads scores from Supabase
+  loadGallery();    // loads gallery metadata from Supabase → shows Cloudinary images
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -2174,18 +2222,32 @@ function rProgUp(pct,lbl){document.getElementById('rProgPct').textContent=pct+'%
 async function sendToSheets(data) {
   if (!SHEETS_WEBHOOK) return;
   try {
+    const payload = {
+      regId:   data.regId   || '',
+      name:    data.name    || '',
+      college: data.college || '',
+      phone:   data.phone   || '',
+      email:   data.email   || '',
+      dept:    data.dept    || '',
+      year:    data.year    || '',
+      gender:  data.gender  || '',
+      events:  Array.isArray(data.events) ? data.events.join(', ') : (data.events||''),
+      amount:  data.amount  || 0,
+      txnId:   data.txnId   || '',
+      status:  data.status  || 'pending',
+      ts:      data.ts      || new Date().toISOString(),
+    };
+    console.log('Sending to Sheets:', payload);
     await fetch(SHEETS_WEBHOOK, {
-      method: 'POST', mode: 'no-cors',
+      method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        regId: data.regId, name: data.name, college: data.college,
-        phone: data.phone, email: data.email, dept: data.dept,
-        year: data.year, gender: data.gender||'',
-        events: data.events.join(', '), amount: data.amount,
-        txnId: data.txnId||'', status: data.status, ts: data.ts,
-      }),
+      body: JSON.stringify(payload),
     });
-  } catch(e) { console.warn('Sheets webhook error (non-critical):', e); }
+    console.log('Sheets webhook sent ✅');
+  } catch(e) {
+    console.warn('Sheets webhook error:', e);
+  }
 }
 
 async function rSubmit(){
