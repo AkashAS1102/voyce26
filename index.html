@@ -804,15 +804,19 @@ async function addGalleryPhoto(photo) {
 /* Update likes or status in Supabase */
 async function updateGalleryPhoto(photo) {
   if (window.__SB) {
-    const { error } = await window.__SB
+    // Cast id to number since Supabase uses integer primary keys
+    const numId = parseInt(photo.id);
+    const { data, error } = await window.__SB
       .from('gallery')
-      .update({
-        likes:   photo.likes  || 0,
-        likedby: JSON.stringify(photo.likedBy || []),
-        status:  photo.status,
-      })
-      .eq('id', photo.id);
-    if (error) console.warn('updateGalleryPhoto error:', error);
+      .update({ status: photo.status, likes: photo.likes || 0, likedby: JSON.stringify(photo.likedBy || []) })
+      .eq('id', numId)
+      .select();
+    if (error) {
+      console.error('updateGalleryPhoto error:', error.message, error.code, error.details);
+      showDebugError('Approve failed: ' + error.message);
+      return;
+    }
+    console.log('✅ Updated photo id', numId, 'to status:', photo.status, 'rows affected:', data?.length);
   }
   const idx = galPhotos.findIndex(p => String(p.id) === String(photo.id));
   if (idx !== -1) galPhotos[idx] = photo;
@@ -979,8 +983,14 @@ function renderAdmin(){
     </div>`).join('')||'<div style="padding:24px;color:rgba(255,255,255,.3);font-size:.75rem;grid-column:1/-1">No photos uploaded yet.</div>';
 }
 async function adminAction(id,action){
+  console.log('adminAction called — id:', id, 'type:', typeof id, 'action:', action);
   const photo=galPhotos.find(p=>String(p.id)===String(id));
-  if(!photo)return;
+  if(!photo){
+    console.error('Photo not found for id:', id, 'galPhotos ids:', galPhotos.map(p=>p.id));
+    showToast('❌ Photo not found — try refreshing');
+    return;
+  }
+  console.log('Found photo:', photo.id, photo.name, 'current status:', photo.status);
   if(action==='rejected'){
     await deleteGalleryPhoto(photo);
     galPhotos=galPhotos.filter(p=>String(p.id)!==String(id));
@@ -988,10 +998,17 @@ async function adminAction(id,action){
     photo.status=action;
     await updateGalleryPhoto(photo);
   }
-  // Reload from Supabase so all devices get the update
+  // Reload from Supabase to confirm the change took effect
   await loadGallery();
+  // Re-render admin panel (loadGallery may have hidden it)
+  const adminPanel=document.getElementById('adminPanel');
+  if(adminPanel) adminPanel.style.display='block';
+  const adminContent=document.getElementById('adminContent');
+  if(adminContent) adminContent.style.display='block';
+  const adminPwdWrap=document.getElementById('adminPwdWrap');
+  if(adminPwdWrap) adminPwdWrap.style.display='none';
   renderAdmin();
-  showToast(action==='approved'?'✅ Photo approved! Visible to all devices now.':'🗑️ Photo deleted');
+  showToast(action==='approved'?'✅ Photo approved!':'🗑️ Photo deleted');
 }
 
 /* Toast */
