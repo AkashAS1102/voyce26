@@ -597,13 +597,35 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
       <h2 style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.4rem;color:var(--c)">⚙️ Admin Panel</h2>
       <button onclick="closeAdmin()" style="background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.25);color:#ff6666;font-family:'Orbitron',sans-serif;font-size:.68rem;padding:8px 18px;border-radius:6px;cursor:none">✕ CLOSE</button>
     </div>
-    <div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.24);border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:.78rem;color:rgba(255,149,0,.8)">⚠️ Admin password: <strong>voyce2026</strong> — Approve or reject submitted photos</div>
+    <div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.24);border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:.78rem;color:rgba(255,149,0,.8)">⚠️ Admin access — Approve or reject submitted photos</div>
     <div id="adminPwdWrap">
       <input class="fi" id="adminPwd" placeholder="Enter admin password" type="password" style="max-width:280px;margin-bottom:12px">
       <button onclick="checkAdminPwd()" style="background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.3);color:var(--c);font-family:'Orbitron',sans-serif;font-size:.68rem;padding:9px 20px;border-radius:6px;cursor:none;margin-left:10px">UNLOCK</button>
     </div>
     <div id="adminContent" style="display:none">
       <div style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:rgba(255,255,255,.38);margin-bottom:16px" id="adminStats"></div>
+      <!-- DB fix helper — shown only if approve fails -->
+      <div id="dbFixBanner" style="display:none;margin-bottom:16px;background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.3);border-radius:8px;padding:14px 16px">
+        <div style="font-family:'Orbitron',sans-serif;font-size:.65rem;color:#ff6666;letter-spacing:1.5px;margin-bottom:8px">⚠ DATABASE TABLE ISSUE — APPROVE NOT WORKING</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:10px">Run this SQL in Supabase → SQL Editor → New Query, then reload the page:</div>
+        <pre id="dbFixSQL" style="background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 12px;font-family:monospace;font-size:.68rem;color:#a0f0a0;overflow-x:auto;white-space:pre;line-height:1.7">DROP TABLE IF EXISTS gallery CASCADE;
+CREATE TABLE gallery (
+  id        BIGSERIAL PRIMARY KEY,
+  name      TEXT,
+  college   TEXT,
+  event     TEXT DEFAULT 'general',
+  caption   TEXT DEFAULT '',
+  src       TEXT,
+  likes     INTEGER DEFAULT 0,
+  likedby   TEXT DEFAULT '[]',
+  status    TEXT DEFAULT 'pending',
+  ts        TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all gallery" ON gallery
+  FOR ALL USING (true) WITH CHECK (true);</pre>
+        <button onclick="copyFixSQL()" style="margin-top:8px;background:rgba(0,240,255,.12);border:1px solid rgba(0,240,255,.3);color:var(--c);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:7px 16px;border-radius:5px;cursor:none">📋 COPY SQL</button>
+      </div>
       <div class="admin-grid" id="adminGrid"></div>
     </div>
   </div>
@@ -804,19 +826,21 @@ async function addGalleryPhoto(photo) {
 /* Update likes or status in Supabase */
 async function updateGalleryPhoto(photo) {
   if (window.__SB) {
-    // Cast id to number since Supabase uses integer primary keys
-    const numId = parseInt(photo.id);
+    const photoId = photo.id; // works for UUID (string) and BIGSERIAL (integer)
     const { data, error } = await window.__SB
       .from('gallery')
       .update({ status: photo.status, likes: photo.likes || 0, likedby: JSON.stringify(photo.likedBy || []) })
-      .eq('id', numId)
+      .eq('id', photoId)
       .select();
     if (error) {
-      console.error('updateGalleryPhoto error:', error.message, error.code, error.details);
-      showDebugError('Approve failed: ' + error.message);
+      console.error('updateGalleryPhoto error:', error.message, error.code, error.details, error.hint);
+      const fixSQL='DROP TABLE IF EXISTS gallery CASCADE;\nCREATE TABLE gallery(id BIGSERIAL PRIMARY KEY,name TEXT,college TEXT,event TEXT DEFAULT \'general\',caption TEXT DEFAULT \'\',src TEXT,likes INTEGER DEFAULT 0,likedby TEXT DEFAULT \'[]\',status TEXT DEFAULT \'pending\',ts TIMESTAMPTZ DEFAULT NOW());\nALTER TABLE gallery ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Allow all" ON gallery FOR ALL USING (true) WITH CHECK (true);';
+      console.warn('SUPABASE FIX: Open Supabase > SQL Editor > New Query, run this:\n\n'+fixSQL);
+      showDebugError('Approve failed: '+error.message+'\n\nFix SQL printed to browser Console (press F12 to open).');
+      const fb=document.getElementById('dbFixBanner');if(fb)fb.style.display='block';
       return;
     }
-    console.log('✅ Updated photo id', numId, 'to status:', photo.status, 'rows affected:', data?.length);
+    console.log('✅ Updated photo id', photoId, 'status:', photo.status, 'rows affected:', data?.length);
   }
   const idx = galPhotos.findIndex(p => String(p.id) === String(photo.id));
   if (idx !== -1) galPhotos[idx] = photo;
@@ -960,7 +984,7 @@ function lbNext(){const ap=approvedPhotos();if(!ap.length)return;const cur=ap.fi
 function openAdmin(){document.getElementById('adminPanel').style.display='block';document.getElementById('adminContent').style.display='none'}
 function closeAdmin(){document.getElementById('adminPanel').style.display='none'}
 function checkAdminPwd(){
-  if(document.getElementById('adminPwd').value==='voyce2026'){
+  if(document.getElementById('adminPwd').value===RCFG.ADMIN_PWD){
     document.getElementById('adminPwdWrap').style.display='none';
     document.getElementById('adminContent').style.display='block';
     renderAdmin();
@@ -1011,6 +1035,12 @@ async function adminAction(id,action){
   showToast(action==='approved'?'✅ Photo approved!':'🗑️ Photo deleted');
 }
 
+function copyFixSQL(){
+  const sql=document.getElementById('dbFixSQL').textContent;
+  navigator.clipboard.writeText(sql).then(()=>showToast('✅ SQL Copied! Paste in Supabase SQL Editor')).catch(()=>{
+    const t=document.createElement('textarea');t.value=sql;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('✅ SQL Copied!');
+  });
+}
 /* Toast */
 function showToast(msg){
   const t=document.createElement('div');t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0d1526;border:1px solid rgba(0,240,255,.35);color:var(--c);font-family:Orbitron,sans-serif;font-size:.72rem;padding:11px 22px;border-radius:8px;z-index:9999;letter-spacing:1.5px;box-shadow:0 0 20px rgba(0,240,255,.2);animation:fadeIn .3s ease';
@@ -1954,7 +1984,7 @@ function handleReg(){}
         </div>
         <div id="rFinalDetails" style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.15);border-radius:11px;padding:18px;margin-bottom:14px;text-align:left"></div>
         <div style="background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.16);border-radius:9px;padding:13px 15px;margin-bottom:18px;font-size:.76rem;color:rgba(255,149,0,.72);line-height:1.7">
-          📞 <strong>Ms. Benisha Janice</strong> · +91 89035 87002<br>📧 Confirmation sent to your email
+          📞 <strong>Ms. Benisha Janice</strong> · +91 89035 87002<br>📌 Show your Registration ID at the venue for confirmation
         </div>
         <button class="rsub" onclick="closeRegOverlay()">← BACK TO VOYCE'26</button>
       </div>
@@ -2040,6 +2070,45 @@ const RSTORAGE_KEY = 'voyce26_registrations_v2';
 const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyptrhJImR2jDLNv666dwnTXPMdHV9o3XknbeYCcV8hMnnDMldbUulUWHzKIXMVCHhj/exec';
 
 let rStep=1, rSelEvs=[], rQrDone=false;
+
+/* ── STARTUP CHECKS ─────────────────────────────────────────── */
+(function runStartupChecks(){
+  const checks=[];
+  if(RCFG.UPI_ID==='voyce26@upi') checks.push('⚠️ UPI ID is still a placeholder — update RCFG.UPI_ID in the script');
+  if(!SHEETS_WEBHOOK) checks.push('⚠️ Google Sheets webhook not set — registrations won\'t reach Sheets');
+  if(checks.length){
+    console.group('%c VOYCE\'26 SETUP ISSUES','color:#ff9500;font-size:14px;font-weight:bold');
+    checks.forEach(c=>console.warn(c));
+    console.groupEnd();
+  }
+  // Show visible red banner if UPI is still placeholder
+  if(RCFG.UPI_ID==='voyce26@upi'){
+    const banner=document.createElement('div');
+    banner.id='upi-warning-banner';
+    banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#7f1d1d;color:#fca5a5;font-family:"Orbitron",sans-serif;font-size:.72rem;letter-spacing:1.5px;padding:10px 20px;text-align:center;border-bottom:2px solid #ef4444';
+    banner.innerHTML='🚨 UPI ID NOT SET — Open the HTML file, find <code style="background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px">RCFG.UPI_ID</code> and replace <code style="background:rgba(255,255,255,.15);padding:1px 6px;border-radius:3px">voyce26@upi</code> with your real UPI ID before going live. &nbsp;<button onclick="document.getElementById(\'upi-warning-banner\').remove()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fca5a5;padding:3px 10px;border-radius:4px;font-family:inherit;font-size:.68rem;cursor:pointer">DISMISS</button>';
+    document.body.prepend(banner);
+  }
+  // Print Supabase table setup SQL to console for easy copy-paste
+  console.log('%c VOYCE\'26 — Supabase Setup SQL','color:#00F0FF;font-size:12px;font-weight:bold');
+  console.log(`-- Run in Supabase SQL Editor → New Query:
+CREATE TABLE IF NOT EXISTS gallery (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT, college TEXT, event TEXT DEFAULT 'general',
+  caption TEXT DEFAULT '', src TEXT,
+  likes INTEGER DEFAULT 0, likedby TEXT DEFAULT '[]',
+  status TEXT DEFAULT 'pending', ts TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON gallery FOR ALL USING (true) WITH CHECK (true);
+
+CREATE TABLE IF NOT EXISTS scores (
+  id TEXT PRIMARY KEY, name TEXT, college TEXT,
+  game TEXT, score NUMERIC, ts TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON scores FOR ALL USING (true) WITH CHECK (true);`);
+})();
 
 function rRenderEvents(){
   function cardH(ev,i){
@@ -2144,7 +2213,19 @@ function rSetupPay(){
   const total=rGetTotal(), evNames=rSelEvs.map(i=>RCFG.EVENTS[i].name).join(', '), cnt=rSelEvs.length;
   document.getElementById('rpAmt').textContent=total;
   document.getElementById('rpEvList').textContent='Events: '+evNames+' ('+cnt+' event'+(cnt>1?'s':'')+')';
-  document.getElementById('rpUpiId').textContent=RCFG.UPI_ID;
+  const upiEl=document.getElementById('rpUpiId');
+  upiEl.textContent=RCFG.UPI_ID;
+  // Warn if UPI is still placeholder
+  if(RCFG.UPI_ID==='voyce26@upi'){
+    upiEl.style.color='#ff4444';
+    upiEl.textContent='⚠ UPI NOT SET — Contact organiser';
+    document.getElementById('rfTxnId').disabled=true;
+    document.getElementById('rfTxnId').placeholder='Payment unavailable — UPI not configured';
+  } else {
+    upiEl.style.color='';
+    document.getElementById('rfTxnId').disabled=false;
+    document.getElementById('rfTxnId').placeholder='e.g. 4259876543210';
+  }
 }
 function rCopyUpi(){
   navigator.clipboard.writeText(RCFG.UPI_ID).then(()=>showToast('✅ UPI ID Copied!')).catch(()=>{const t=document.createElement('textarea');t.value=RCFG.UPI_ID;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('✅ UPI ID Copied!');});
