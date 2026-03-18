@@ -684,25 +684,28 @@ let galPhotos=[],galFilter='all',galSortTopLiked=false;
 
 /* ── CLOUDINARY CONFIG ─────────────────────────────────────────
    Free plan: 25 GB storage, 25 GB bandwidth/month.
-   Steps to get these values are in the setup guide below.
+   1. Sign up at cloudinary.com
+   2. Copy your Cloud Name from the dashboard
+   3. Settings → Upload → Upload Presets → Add preset
+      Name: voyce26_gallery  |  Signing: Unsigned
    ─────────────────────────────────────────────────────────── */
-const CLOUDINARY_CLOUD = 'voyce26_gallery';   // ← replace
-const CLOUDINARY_PRESET = 'voyce26_gallery';  // ← your unsigned upload preset name
+const CLOUDINARY_CLOUD  = 'ddpntpbxg';    // ← replace
+const CLOUDINARY_PRESET = 'voyce26_gallery';    // ← your unsigned preset name
 
-/* Upload image to Cloudinary, return secure URL */
+/* Upload gallery image to Cloudinary, return secure URL */
 async function uploadToCloudinary(dataURL) {
   if (CLOUDINARY_CLOUD === 'YOUR_CLOUD_NAME') {
-    // Not configured — return dataURL as fallback (local only)
-    return dataURL;
+    return dataURL; // not configured — store locally as fallback
   }
   const blob = dataURLtoBlob(dataURL);
   const fd = new FormData();
   fd.append('file', blob);
   fd.append('upload_preset', CLOUDINARY_PRESET);
   fd.append('folder', 'voyce26_gallery');
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
-    method: 'POST', body: fd
-  });
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+    { method: 'POST', body: fd }
+  );
   const json = await res.json();
   if (!json.secure_url) throw new Error('Cloudinary upload failed');
   return json.secure_url;
@@ -715,53 +718,37 @@ function dataURLtoBlob(dataURL) {
   return new Blob([u], {type: mime});
 }
 
-/* Load gallery photos from Firestore (or empty array if not configured) */
+/* Load gallery photos from localStorage */
 async function loadGallery() {
   try {
-    if (window.__FB) {
-      const { db, collection, getDocs, query, orderBy } = window.__FB;
-      const snap = await getDocs(query(collection(db, 'gallery'), orderBy('ts', 'desc')));
-      galPhotos = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-    } else {
-      galPhotos = [];
-    }
-  } catch(e) {
-    console.warn('Gallery load error:', e);
-    galPhotos = [];
-  }
+    const saved = localStorage.getItem(GAL_KEY);
+    galPhotos = saved ? JSON.parse(saved) : [];
+  } catch(e) { galPhotos = []; }
   renderGallery();
 }
 
-/* Save a single new photo to Firestore */
+/* Save gallery photos to localStorage */
 async function saveGallery() {
-  // No-op — individual photos are added via addGalleryPhoto()
+  try { localStorage.setItem(GAL_KEY, JSON.stringify(galPhotos)); } catch(e) {}
 }
 
-/* Add a single photo doc to Firestore */
+/* Add a new photo (image to Cloudinary, metadata to localStorage) */
 async function addGalleryPhoto(photo) {
-  if (window.__FB) {
-    const { db, collection, addDoc } = window.__FB;
-    const docRef = await addDoc(collection(db, 'gallery'), photo);
-    photo.docId = docRef.id;
-  }
   galPhotos.unshift(photo);
+  await saveGallery();
 }
 
-/* Update a photo doc in Firestore (for likes / status changes) */
+/* Update a photo in localStorage */
 async function updateGalleryPhoto(photo) {
-  if (window.__FB && photo.docId) {
-    const { db, doc, updateDoc } = window.__FB;
-    const { docId, ...data } = photo;
-    await updateDoc(doc(db, 'gallery', docId), data);
-  }
+  const idx = galPhotos.findIndex(p => String(p.id) === String(photo.id));
+  if (idx !== -1) galPhotos[idx] = photo;
+  await saveGallery();
 }
 
-/* Delete a photo doc from Firestore */
+/* Delete a photo from localStorage */
 async function deleteGalleryPhoto(photo) {
-  if (window.__FB && photo.docId) {
-    const { db, doc, deleteDoc } = window.__FB;
-    await deleteDoc(doc(db, 'gallery', photo.docId));
-  }
+  galPhotos = galPhotos.filter(p => String(p.id) !== String(photo.id));
+  await saveGallery();
 }
 
 
@@ -786,7 +773,7 @@ async function doUpload(){
   if(uploadBtn){ uploadBtn.disabled=true; uploadBtn.textContent='⏳ UPLOADING...'; }
 
   try {
-    // Upload image to Cloudinary (or use dataURL if not configured)
+    // Upload image to Cloudinary, get permanent URL
     const imgUrl = await uploadToCloudinary(uploadPhotoData);
     const photo = {
       id: Date.now()+Math.random(),
@@ -955,21 +942,28 @@ const WORDS_HARD=['algorithm','recursion','polymorphism','encapsulation','abstra
 
 async function loadScores(){
   try{
-    if(window.__FB){
-      const{db,collection,getDocs,query,orderBy}=window.__FB;
-      const snap=await getDocs(query(collection(db,'scores'),orderBy('ts','desc')));
-      return snap.docs.map(d=>({docId:d.id,...d.data()}));
+    if(window.__SB){
+      const{data,error}=await window.__SB
+        .from('scores')
+        .select('*')
+        .order('ts',{ascending:false});
+      if(error)throw error;
+      return data||[];
     }
   }catch(e){console.warn('Score load:',e);}
-  return [];
+  return[];
 }
 async function persistScore(e){
   try{
-    e.id=Date.now()+Math.random();
     e.ts=new Date().toISOString();
-    if(window.__FB){
-      const{db,collection,addDoc}=window.__FB;
-      await addDoc(collection(db,'scores'),e);
+    if(window.__SB){
+      const{data,error}=await window.__SB
+        .from('scores')
+        .insert([e])
+        .select()
+        .single();
+      if(error)throw error;
+      e.id=data.id;
     }
     return await loadScores();
   }catch(err){console.error(err);return scores;}
@@ -1832,32 +1826,38 @@ updateUploadTriggerUI();
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
-     FIREBASE SDK (for cloud storage of registrations)
-     Replace firebaseConfig values with your own from Firebase Console
+     SUPABASE CONFIG — FOR GAME SCORES & LEADERBOARD ONLY
+     ────────────────────────────────────────────────────────────────
+     Registrations → Google Sheets  |  Images → Cloudinary
+     Game scores & leaderboard → Supabase (only 1 table needed)
+     ────────────────────────────────────────────────────────────────
+     Replace the 2 values below with your Supabase project keys:
+     supabase.com → Your Project → Settings → API
      ════════════════════════════════════════════════════════════════ -->
-<script type="module">
-const firebaseConfig = {
-  apiKey: "AIzaSyBrXx_r_0TjPR6lvjKwx_vdZoSTIvwh5jI",
-  authDomain: "voyce26-6e69f.firebaseapp.com",
-  projectId: "voyce26-6e69f",
-  storageBucket: "voyce26-6e69f.firebasestorage.app",
-  messagingSenderId: "1007189458523",
-  appId: "1:1007189458523:web:18fd374dd4d02ee15b097e",
-  measurementId: "G-B06JPF7X72"
-};
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ▼▼▼ REPLACE THESE 2 VALUES WITH YOUR SUPABASE CONFIG ▼▼▼
+  const SUPABASE_URL  = 'https://zmyshcsnbxewstlqhdtt.supabase.co';   // e.g. https://xyzxyz.supabase.co
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteXNoY3NuYnhld3N0bHFoZHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTc5NTAsImV4cCI6MjA4OTM5Mzk1MH0.yXXdFONiYPgnxyzMgH4m9ZP7YFVScF0NSKk1iymY7cI';       // long string starting with eyJ...
+  // ▲▲▲ REPLACE THESE 2 VALUES WITH YOUR SUPABASE CONFIG ▲▲▲
+
   try {
-    const app = initializeApp(firebaseConfig);
-    window.__FB = { db:getFirestore(app), storage:getStorage(app), collection, addDoc, doc, updateDoc, deleteDoc, getDocs, query, orderBy, where, ref, uploadBytes, getDownloadURL, serverTimestamp };
-    console.log('✅ Firebase ready');
-  } catch(e) { window.__FB = null; console.warn('Firebase not configured — demo mode'); }
+    if (SUPABASE_URL !== 'https://zmyshcsnbxewstlqhdtt.supabase.co') {
+      window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      console.log('✅ Supabase ready');
+    } else {
+      window.__SB = null;
+      console.warn('Supabase not configured — running in demo mode');
+    }
+  } catch(e) {
+    window.__SB = null;
+    console.warn('Supabase error:', e);
+  }
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
      REGISTRATION OVERLAY — slides in from right
-     One-time flat fee · Select any events · UPI payment + proof upload
+     One-time flat fee · Select any events · UPI payment
      ════════════════════════════════════════════════════════════════ -->
 
 <!-- Overlay backdrop -->
@@ -1896,8 +1896,7 @@ const firebaseConfig = {
       <div class="rs-item active" id="rsi1"><div class="rs-circle">1</div><div class="rs-lbl">Details</div></div>
       <div class="rs-item" id="rsi2"><div class="rs-circle">2</div><div class="rs-lbl">Events</div></div>
       <div class="rs-item" id="rsi3"><div class="rs-circle">3</div><div class="rs-lbl">Pay</div></div>
-      <div class="rs-item" id="rsi4"><div class="rs-circle">4</div><div class="rs-lbl">Proof</div></div>
-      <div class="rs-item" id="rsi5"><div class="rs-circle">✓</div><div class="rs-lbl">Done</div></div>
+      <div class="rs-item" id="rsi4"><div class="rs-circle">✓</div><div class="rs-lbl">Done</div></div>
     </div>
 
     <!-- Steps -->
@@ -1985,46 +1984,22 @@ const firebaseConfig = {
               <div>1. Open any UPI app (GPay / PhonePe / Paytm)</div>
               <div>2. Scan QR code or enter UPI ID above</div>
               <div>3. Pay exact amount <strong style="color:#ffd700;font-family:'Orbitron',sans-serif">₹<span id="rpAmtInline">0</span></strong></div>
-              <div>4. Screenshot the success confirmation screen</div>
-              <div>5. Upload that screenshot in the next step</div>
+              <div>4. Click <strong style="color:#fff">Submit Registration</strong> below</div>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:9px">
-            <button class="rsub" onclick="rGoStep(4)">PAID → UPLOAD SCREENSHOT ✓</button>
+            <button class="rsub" onclick="rGoStep(4)">🚀 SUBMIT REGISTRATION</button>
             <button class="rsec" onclick="rGoStep(2)">← BACK</button>
           </div>
         </div>
       </div>
 
       <!-- Step 4: Proof Upload -->
-      <div id="rs4" style="display:none">
-        <div class="rcard"><div class="rcard-title">📸 Upload Payment Proof</div>
-          <p style="color:rgba(255,255,255,.42);font-size:.78rem;line-height:1.7;margin-bottom:14px">Upload a clear screenshot of your UPI confirmation showing the transaction ID and <strong style="color:#fff">amount ₹<span id="rpAmtHint">0</span></strong>.</p>
-          <div id="rDropZone" style="border:2px dashed rgba(0,240,255,.25);border-radius:12px;padding:26px 18px;text-align:center;cursor:none;transition:all .28s;background:rgba(0,240,255,.02)" onclick="document.getElementById('rProofFile').click()" ondragover="this.classList.add('rdrag');event.preventDefault()" ondragleave="this.classList.remove('rdrag')" ondrop="rOnDrop(event)">
-            <div style="font-size:2.4rem;margin-bottom:8px" id="rDropIcon">💳</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--c);letter-spacing:2px;margin-bottom:4px" id="rDropTitle">TAP TO UPLOAD PAYMENT PROOF</div>
-            <div style="font-size:.66rem;color:rgba(255,255,255,.26)" id="rDropSub">JPG · PNG · WEBP · Max 5MB</div>
-            <img id="rProofPrev" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;display:none;border:1px solid rgba(0,240,255,.15);margin-top:10px" alt="Proof">
-            <div id="rDropChange" style="display:none;font-size:.62rem;color:rgba(0,240,255,.5);margin-top:6px;font-family:'Orbitron',sans-serif;letter-spacing:1px">Tap to change</div>
-          </div>
-          <input type="file" id="rProofFile" accept="image/*" style="display:none" onchange="rProofSelect(this)">
-          <div class="rerr" id="reProof" style="margin-top:6px">Please upload your payment screenshot</div>
-          <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.12);border-radius:9px;padding:13px 16px;margin:14px 0">
-            <div style="font-size:.58rem;font-family:'Orbitron',sans-serif;letter-spacing:1.5px;color:rgba(0,240,255,.5);margin-bottom:7px">REGISTRATION SUMMARY</div>
-            <div id="rFinalSummary" style="font-size:.77rem;color:rgba(255,255,255,.48);line-height:1.9"></div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:9px">
-            <button class="rsub" id="rSubmitBtn" onclick="rSubmit()">🚀 SUBMIT REGISTRATION</button>
-            <button class="rsec" onclick="rGoStep(3)">← BACK</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 5: Success -->
-      <div id="rs5" style="display:none;text-align:center;padding:20px 0">
+      <!-- Step 4: Success -->
+      <div id="rs4" style="display:none;text-align:center;padding:20px 0">
         <div style="font-size:4rem;margin-bottom:14px;animation:bounceIn .7s cubic-bezier(.175,.885,.32,1.275) both">🎉</div>
         <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.6rem;color:var(--c);text-shadow:0 0 18px var(--c);margin-bottom:6px">YOU'RE IN!</div>
-        <div style="color:rgba(255,255,255,.42);font-size:.84rem;line-height:1.8;margin-bottom:20px">Registration submitted!<br>Payment verified within 24 hours.</div>
+        <div style="color:rgba(255,255,255,.42);font-size:.84rem;line-height:1.8;margin-bottom:20px">Registration submitted!<br>We will verify your payment and confirm shortly.</div>
         <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.26);border-radius:12px;padding:16px 20px;margin-bottom:16px">
           <div style="font-size:.6rem;color:rgba(255,215,0,.5);font-family:'Orbitron',sans-serif;letter-spacing:2px;margin-bottom:5px">YOUR REGISTRATION ID</div>
           <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.5rem;color:#ffd700;text-shadow:0 0 14px rgba(255,215,0,.4);letter-spacing:2px" id="rFinalId">VCE26-XXXX</div>
@@ -2084,7 +2059,7 @@ select.rfi option{background:#0d1526;color:#fff}
 .revc-chk{width:18px;height:18px;border:2px solid rgba(0,240,255,.28);border-radius:4px;background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px}
 .revc.rsel .revc-chk{background:var(--c);border-color:var(--c)}
 .revc.rsel .revc-chk::after{content:'✓';font-size:.66rem;color:#0A0F1C;font-weight:800}
-#rDropZone.rdrag{border-color:var(--c);background:rgba(0,240,255,.07);box-shadow:0 0 18px rgba(0,240,255,.08)}
+
 #regPanel::-webkit-scrollbar{width:3px}
 #regPanel::-webkit-scrollbar-thumb{background:rgba(0,240,255,.2);border-radius:2px}
 @media(max-width:520px){#regPanel{width:100vw}.rcard{padding:16px 14px}#rStepper{padding:14px 16px 4px}}
@@ -2115,9 +2090,9 @@ const RSTORAGE_KEY = 'voyce26_registrations_v2';
    Steps are printed in the browser console on first load.
    Leave as '' to skip (data still saves locally).
 ─────────────────────────────────────────────────────────────── */
-const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwExbShVMqO3Xrs2t9nqT3rVCYtEiltrxLkcKy6u8NLBZALmNdPbn0vja5RJpg66otK/exec';   // ← paste your Apps Script URL here
+const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyptrhJImR2jDLNv666dwnTXPMdHV9o3XknbeYCcV8hMnnDMldbUulUWHzKIXMVCHhj/exec';   // ← paste your Apps Script URL here
 
-let rStep=1,rSelEvs=[],rProofDataURL=null,rProofBlob=null,rQrDone=false;
+let rStep=1,rSelEvs=[],rQrDone=false;
 
 function rRenderEvents(){
   function cardH(ev,i){
@@ -2147,27 +2122,22 @@ window.closeRegOverlay=function(){
   setTimeout(()=>{
     document.getElementById('regOverlay').style.display='none';
     document.body.style.overflow='';
-    rStep=1;rSelEvs=[];rProofDataURL=null;rProofBlob=null;rQrDone=false;
-    for(let i=1;i<=5;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===1?'block':'none';}
+    rStep=1;rSelEvs=[];rQrDone=false;
+    for(let i=1;i<=4;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===1?'block':'none';}
     document.getElementById('rStepper').style.display='flex';
     rUpdateStepper(1);rUpdateTotal();
-    document.getElementById('rProofPrev').style.display='none';
-    document.getElementById('rDropIcon').style.display='block';
-    document.getElementById('rDropTitle').style.display='block';
-    document.getElementById('rDropSub').style.display='block';
-    document.getElementById('rDropChange').style.display='none';
-    document.getElementById('rProofFile').value='';
     RCFG.EVENTS.forEach((_,i)=>{const c=document.getElementById('revc'+i),cb=document.getElementById('rcb'+i);if(c)c.classList.remove('rsel');if(cb)cb.classList.remove('rsel');});
   },380);
 };
 
-function rUpdateStepper(s){for(let i=1;i<=5;i++){const el=document.getElementById('rsi'+i);if(el)el.className='rs-item '+(i<s?'done':i===s?'active':'');}}
+function rUpdateStepper(s){for(let i=1;i<=4;i++){const el=document.getElementById('rsi'+i);if(el)el.className='rs-item '+(i<s?'done':i===s?'active':'');}}
 
 function rGoStep(n){
   if(n>rStep){if(rStep===1&&!rVal1())return;if(rStep===2&&!rVal2())return;}
-  for(let i=1;i<=5;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===n?'block':'none';}
+  for(let i=1;i<=4;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===n?'block':'none';}
   rStep=n;rUpdateStepper(n);
-  if(n===3)rSetupPay();if(n===4)rSetupSummary();
+  if(n===3)rSetupPay();
+  if(n===4)rSubmit(); // payment step button goes straight to submit
   document.getElementById('regPanel').scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -2223,33 +2193,6 @@ function rCopyUpi(){
   navigator.clipboard.writeText(RCFG.UPI_ID).then(()=>showToast('✅ UPI ID Copied!')).catch(()=>{const t=document.createElement('textarea');t.value=RCFG.UPI_ID;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('✅ UPI ID Copied!');});
 }
 
-function rOnDrop(e){e.preventDefault();document.getElementById('rDropZone').classList.remove('rdrag');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))rProcessProof(f);}
-function rProofSelect(inp){const f=inp.files[0];if(f)rProcessProof(f);}
-function rProcessProof(file){
-  if(file.size>5*1024*1024){rShowErr('reProof',true);document.getElementById('reProof').textContent='File too large. Max 5MB.';return;}
-  rShowErr('reProof',false);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const MAX=1200;let w=img.width,h=img.height;
-      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      rProofDataURL=cv.toDataURL('image/jpeg',.82);
-      cv.toBlob(blob=>{rProofBlob=blob;},'image/jpeg',.82);
-      const pv=document.getElementById('rProofPrev');pv.src=rProofDataURL;pv.style.display='block';
-      document.getElementById('rDropIcon').style.display='none';document.getElementById('rDropTitle').style.display='none';
-      document.getElementById('rDropSub').style.display='none';document.getElementById('rDropChange').style.display='block';
-    };img.src=e.target.result;
-  };reader.readAsDataURL(file);
-}
-function rSetupSummary(){
-  const n=document.getElementById('rfName').value.trim(),c=document.getElementById('rfCollege').value.trim(),p=document.getElementById('rfPhone').value.trim();
-  const ev=rSelEvs.map(i=>RCFG.EVENTS[i].name).join(', '),total=rGetTotal();
-  document.getElementById('rpAmtHint').textContent=total;
-  document.getElementById('rFinalSummary').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px"><div>👤 <strong style="color:#fff">${n}</strong> · 🏫 ${c}</div><div>📱 +91 ${p}</div><div>🎯 ${rSelEvs.length} event${rSelEvs.length>1?'s':''}: ${ev}</div><div style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif;font-size:.8rem">💰 ONE-TIME FEE: ₹${total}</div></div>`;
-}
 function rGenId(){return'VCE26-'+Math.random().toString(36).substr(2,4).toUpperCase()+Date.now().toString(36).toUpperCase().slice(-3);}
 function rProg(show,lbl,pct){const ov=document.getElementById('rProgOverlay');ov.style.display=show?'flex':'none';if(show){document.getElementById('rProgLbl').textContent=lbl||'PROCESSING...';document.getElementById('rProgPct').textContent=(pct||0)+'%';}}
 function rProgUp(pct,lbl){document.getElementById('rProgPct').textContent=pct+'%';if(lbl)document.getElementById('rProgLbl').textContent=lbl;}
@@ -2258,69 +2201,60 @@ function rProgUp(pct,lbl){document.getElementById('rProgPct').textContent=pct+'%
 async function sendToSheets(data) {
   if (!SHEETS_WEBHOOK) return;
   try {
-    // Use no-cors — response is opaque but data goes through
     await fetch(SHEETS_WEBHOOK, {
-      method: 'POST',
-      mode: 'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        regId:   data.regId,
-        name:    data.name,
-        college: data.college,
-        phone:   data.phone,
-        email:   data.email,
-        dept:    data.dept,
-        year:    data.year,
-        gender:  data.gender || '',
-        events:  data.events.join(', '),
-        amount:  data.amount,
-        status:  data.status,
-        ts:      data.ts,
+        regId: data.regId, name: data.name, college: data.college,
+        phone: data.phone, email: data.email, dept: data.dept,
+        year: data.year, gender: data.gender||'',
+        events: data.events.join(', '), amount: data.amount,
+        status: data.status, ts: data.ts,
       }),
     });
-  } catch(e) {
-    console.warn('Sheets webhook error (non-critical):', e);
-  }
+  } catch(e) { console.warn('Sheets webhook error (non-critical):', e); }
 }
 
 async function rSubmit(){
-  if(!rProofDataURL){rShowErr('reProof',true);document.getElementById('reProof').textContent='Please upload payment screenshot';return;}
-  rShowErr('reProof',false);
-  const btn=document.getElementById('rSubmitBtn');btn.disabled=true;
-  const regData={regId:rGenId(),name:document.getElementById('rfName').value.trim(),college:document.getElementById('rfCollege').value.trim(),phone:'+91'+document.getElementById('rfPhone').value.trim(),email:document.getElementById('rfEmail').value.trim(),dept:document.getElementById('rfDept').value,year:document.getElementById('rfYear').value,gender:document.getElementById('rfGender').value,events:rSelEvs.map(i=>RCFG.EVENTS[i].name),amount:rGetTotal(),flatFee:true,status:'pending',ts:new Date().toISOString(),proofUrl:rProofDataURL};
-  rProg(true,'UPLOADING PAYMENT PROOF...',0);
+  const regData={
+    regId:rGenId(),
+    name:document.getElementById('rfName').value.trim(),
+    college:document.getElementById('rfCollege').value.trim(),
+    phone:'+91'+document.getElementById('rfPhone').value.trim(),
+    email:document.getElementById('rfEmail').value.trim(),
+    dept:document.getElementById('rfDept').value,
+    year:document.getElementById('rfYear').value,
+    gender:document.getElementById('rfGender').value,
+    events:rSelEvs.map(i=>RCFG.EVENTS[i].name),
+    amount:rGetTotal(),flatFee:true,status:'pending',
+    ts:new Date().toISOString(),
+  };
+  rProg(true,'SUBMITTING REGISTRATION...',30);
   try{
-    if(window.__FB){
-      const{storage,db,ref,uploadBytes,getDownloadURL,collection,addDoc,serverTimestamp}=window.__FB;
-      rProgUp(20,'UPLOADING SCREENSHOT...');
-      const imgRef=ref(storage,`voyce26/payments/${regData.regId}.jpg`);
-      await uploadBytes(imgRef,rProofBlob||rDataURLtoBlob(rProofDataURL));
-      rProgUp(55,'SAVING...');regData.proofUrl=await getDownloadURL(imgRef);
-      await addDoc(collection(db,'registrations'),{...regData,timestamp:serverTimestamp()});
-      rProgUp(95,'FINALIZING...');
-    }else{
-      rProgUp(30,'SAVING...');await new Promise(r=>setTimeout(r,700));rProgUp(70,'PROCESSING...');
-      try{
-        let ex=[];
-        try{const r=localStorage.getItem(RSTORAGE_KEY);ex=r?JSON.parse(r):[];}catch(e){}
-        ex.push(regData);
-        localStorage.setItem(RSTORAGE_KEY,JSON.stringify(ex));
-      }catch(e){}
-      rProgUp(95,'FINALIZING...');
-    }
-    await new Promise(r=>setTimeout(r,450));
+    await new Promise(r=>setTimeout(r,600));
+    rProgUp(70,'SAVING...');
+    // Save to localStorage as local backup
+    try{
+      let ex=[];
+      try{const r=localStorage.getItem(RSTORAGE_KEY);ex=r?JSON.parse(r):[];}catch(e){}
+      ex.push(regData);
+      localStorage.setItem(RSTORAGE_KEY,JSON.stringify(ex));
+    }catch(e){}
+    rProgUp(95,'FINALIZING...');
+    await new Promise(r=>setTimeout(r,400));
     sendToSheets(regData); // fire-and-forget to Google Sheets
-    rProg(false);rShowSuccess(regData);
-  }catch(err){console.error(err);rProg(false);btn.disabled=false;showToast('❌ Error: '+err.message);}
+    rProg(false);
+    rShowSuccess(regData);
+  }catch(err){console.error(err);rProg(false);showToast('❌ Error: '+err.message);}
 }
 function rShowSuccess(data){
-  for(let i=1;i<=4;i++){const e=document.getElementById('rs'+i);if(e)e.style.display='none';}
+  for(let i=1;i<=3;i++){const e=document.getElementById('rs'+i);if(e)e.style.display='none';}
   document.getElementById('rStepper').style.display='none';
   document.getElementById('rFinalId').textContent=data.regId;
   document.getElementById('rFinalDetails').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem"><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">NAME</span><span style="color:#fff;font-weight:500">${data.name}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PHONE</span><span style="color:#fff">${data.phone}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div></div>`;
-  rUpdateStepper(5);document.getElementById('rs5').style.display='block';
+  rUpdateStepper(4);document.getElementById('rs4').style.display='block';
   document.getElementById('regPanel').scrollTo({top:0,behavior:'smooth'});
 }
-function rDataURLtoBlob(d){const a=d.split(','),m=a[0].match(/:(.*?);/)[1],b=atob(a[1]);let n=b.length;const u=new Uint8Array(n);while(n--)u[n]=b.charCodeAt(n);return new Blob([u],{type:m});}
+
 </script>
 </body></html>
