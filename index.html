@@ -1938,36 +1938,20 @@ updateUploadTriggerUI();
               <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:2">GPay &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; Paytm &nbsp;·&nbsp; BHIM &nbsp;·&nbsp; Amazon Pay</div>
             </div>
           </div>
-          <!-- Receipt upload -->
-          <div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:rgba(255,149,0,.65);margin-bottom:10px">📸 UPLOAD PAYMENT RECEIPT</div>
-          <div id="rReceiptDrop" style="border:2px dashed rgba(0,240,255,.25);border-radius:12px;padding:24px 18px;text-align:center;cursor:none;transition:all .28s;background:rgba(0,240,255,.02);margin-bottom:6px"
-            onclick="document.getElementById('rReceiptFile').click()"
-            ondragover="this.style.borderColor='var(--c)';event.preventDefault()"
-            ondragleave="this.style.borderColor='rgba(0,240,255,.25)'"
-            ondrop="rReceiptDrop(event)">
-            <div style="font-size:2rem;margin-bottom:7px" id="rReceiptIcon">🧾</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:.68rem;color:var(--c);letter-spacing:2px;margin-bottom:3px" id="rReceiptTitle">TAP TO UPLOAD RECEIPT</div>
-            <div style="font-size:.64rem;color:rgba(255,255,255,.26)" id="rReceiptSub">JPG · PNG · PDF · Max 5MB</div>
-            <img id="rReceiptPreview" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;display:none;border:1px solid rgba(0,240,255,.15);margin-top:10px" alt="Receipt">
-            <div id="rReceiptChange" style="display:none;font-size:.62rem;color:rgba(0,240,255,.5);margin-top:6px;font-family:'Orbitron',sans-serif;letter-spacing:1px">Tap to change</div>
-          </div>
-          <input type="file" id="rReceiptFile" accept="image/*,application/pdf" style="display:none" onchange="rReceiptSelect(this)">
-          <div class="rerr" id="reReceipt" style="margin-bottom:14px">Please upload your payment receipt</div>
-
           <!-- Transaction ID -->
           <div style="margin-bottom:18px">
             <label class="rl">UPI Transaction ID *</label>
             <input class="rfi" id="rfTxnId" type="text" placeholder="e.g. 4259876543210" maxlength="30"
-              style="letter-spacing:1px"
+              style="letter-spacing:1.5px;font-family:'Orbitron',sans-serif;font-size:.85rem"
               oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()">
-            <div style="font-size:.62rem;color:rgba(255,255,255,.25);margin-top:5px;line-height:1.6">
-              Find it in your UPI app → Payment History → this transaction → copy the UTR / Transaction ID
+            <div style="font-size:.64rem;color:rgba(255,255,255,.28);margin-top:7px;line-height:1.7">
+              📱 Find it in your UPI app → Payment History → tap this transaction → copy the <strong style="color:rgba(0,240,255,.6)">UTR / Transaction ID</strong>
             </div>
-            <div class="rerr" id="reTxn">Please enter your Transaction ID</div>
+            <div class="rerr" id="reTxn">Please enter your Transaction ID (min 6 characters)</div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:9px">
-            <button class="rsub" onclick="rGoStep(4)">✅ DONE — SUBMIT REGISTRATION</button>
+            <button class="rsub" onclick="rGoStep(4)">🚀 SUBMIT REGISTRATION</button>
             <button class="rsec" onclick="rGoStep(2)">← BACK</button>
           </div>
         </div>
@@ -2071,7 +2055,7 @@ const RSTORAGE_KEY = 'voyce26_registrations_v2';
 ─────────────────────────────────────────────────────────────── */
 const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyptrhJImR2jDLNv666dwnTXPMdHV9o3XknbeYCcV8hMnnDMldbUulUWHzKIXMVCHhj/exec';
 
-let rStep=1, rSelEvs=[], rReceiptDataURL=null, rReceiptBlob=null;
+let rStep=1, rSelEvs=[], rQrDone=false;
 
 function rRenderEvents(){
   function cardH(ev,i){
@@ -2101,24 +2085,14 @@ window.closeRegOverlay=function(){
   setTimeout(()=>{
     document.getElementById('regOverlay').style.display='none';
     document.body.style.overflow='';
-    rStep=1; rSelEvs=[]; rReceiptDataURL=null; rReceiptBlob=null;
+    rStep=1; rSelEvs=[]; rQrDone=false;
     for(let i=1;i<=4;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===1?'block':'none';}
     document.getElementById('rStepper').style.display='flex';
     rUpdateStepper(1); rUpdateTotal();
-    // Reset receipt upload UI
-    const icon=document.getElementById('rReceiptIcon');
-    const title=document.getElementById('rReceiptTitle');
-    const sub=document.getElementById('rReceiptSub');
-    const prev=document.getElementById('rReceiptPreview');
-    const chg=document.getElementById('rReceiptChange');
-    if(icon){icon.style.display='block';icon.textContent='🧾';}
-    if(title){title.style.display='block';}
-    if(sub){sub.style.display='block';}
-    if(prev){prev.style.display='none';prev.src='';}
-    if(chg){chg.style.display='none';}
-    const fi=document.getElementById('rReceiptFile');
-    if(fi) fi.value='';
-    rShowErr('reReceipt',false);
+    // Reset txn ID
+    const txnEl=document.getElementById('rfTxnId');
+    if(txnEl) txnEl.value='';
+    rShowErr('reTxn',false);
     RCFG.EVENTS.forEach((_,i)=>{const c=document.getElementById('revc'+i),cb=document.getElementById('rcb'+i);if(c)c.classList.remove('rsel');if(cb)cb.classList.remove('rsel');});
   },380);
 };
@@ -2153,8 +2127,6 @@ function rVal1(){
 function rVal2(){if(rSelEvs.length===0){rShowErr('reEv',true);return false;}rShowErr('reEv',false);return true;}
 function rVal3(){
   let ok=true;
-  if(!rReceiptDataURL){rShowErr('reReceipt',true);ok=false;}
-  else{rShowErr('reReceipt',false);}
   const txn=document.getElementById('rfTxnId').value.trim();
   if(!txn||txn.length<6){rShowErr('reTxn',true);rMark('rfTxnId',true);ok=false;}
   else{rShowErr('reTxn',false);rMark('rfTxnId',false);}
@@ -2194,51 +2166,6 @@ function rCopyUpi(){
   navigator.clipboard.writeText(RCFG.UPI_ID).then(()=>showToast('✅ UPI ID Copied!')).catch(()=>{const t=document.createElement('textarea');t.value=RCFG.UPI_ID;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('✅ UPI ID Copied!');});
 }
 
-/* Receipt upload handlers */
-function rReceiptDrop(e){
-  e.preventDefault();
-  document.getElementById('rReceiptDrop').style.borderColor='rgba(0,240,255,.25)';
-  const f=e.dataTransfer.files[0];
-  if(f) rProcessReceipt(f);
-}
-function rReceiptSelect(inp){
-  const f=inp.files[0]; if(f) rProcessReceipt(f);
-}
-function rProcessReceipt(file){
-  if(file.size>5*1024*1024){rShowErr('reReceipt',true);document.getElementById('reReceipt').textContent='File too large. Max 5MB.';return;}
-  rShowErr('reReceipt',false);
-  const reader=new FileReader();
-  reader.onload=e=>{
-    rReceiptDataURL=e.target.result;
-    // Show preview if image
-    if(file.type.startsWith('image/')){
-      const img=new Image();
-      img.onload=()=>{
-        const MAX=1200;let w=img.width,h=img.height;
-        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
-        cv.getContext('2d').drawImage(img,0,0,w,h);
-        rReceiptDataURL=cv.toDataURL('image/jpeg',.85);
-        cv.toBlob(blob=>{rReceiptBlob=blob;},'image/jpeg',.85);
-        const pv=document.getElementById('rReceiptPreview');
-        pv.src=rReceiptDataURL; pv.style.display='block';
-        document.getElementById('rReceiptIcon').style.display='none';
-        document.getElementById('rReceiptTitle').style.display='none';
-        document.getElementById('rReceiptSub').style.display='none';
-        document.getElementById('rReceiptChange').style.display='block';
-      };
-      img.src=e.target.result;
-    } else {
-      // PDF — show filename indicator
-      document.getElementById('rReceiptIcon').textContent='📄';
-      document.getElementById('rReceiptTitle').textContent=file.name;
-      document.getElementById('rReceiptSub').textContent='PDF receipt uploaded ✓';
-      document.getElementById('rReceiptChange').style.display='block';
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
 function rGenId(){return'VCE26-'+Math.random().toString(36).substr(2,4).toUpperCase()+Date.now().toString(36).toUpperCase().slice(-3);}
 function rProg(show,lbl,pct){const ov=document.getElementById('rProgOverlay');ov.style.display=show?'flex':'none';if(show){document.getElementById('rProgLbl').textContent=lbl||'PROCESSING...';document.getElementById('rProgPct').textContent=(pct||0)+'%';}}
 function rProgUp(pct,lbl){document.getElementById('rProgPct').textContent=pct+'%';if(lbl)document.getElementById('rProgLbl').textContent=lbl;}
@@ -2275,22 +2202,9 @@ async function rSubmit(){
     amount:rGetTotal(), flatFee:true, status:'pending',
     txnId: document.getElementById('rfTxnId').value.trim(),
     ts:new Date().toISOString(),
-    receiptUrl: rReceiptDataURL || '',
   };
-  rProg(true,'UPLOADING RECEIPT...',20);
+  rProg(true,'SUBMITTING...',30);
   try{
-    // Upload receipt to Cloudinary
-    if(rReceiptDataURL && CLOUDINARY_CLOUD !== 'YOUR_CLOUD_NAME'){
-      rProgUp(30,'UPLOADING RECEIPT...');
-      const blob=rReceiptBlob||rDataURLtoBlob(rReceiptDataURL);
-      const fd=new FormData();
-      fd.append('file',blob);
-      fd.append('upload_preset',CLOUDINARY_PRESET);
-      fd.append('folder','voyce26_payments');
-      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
-      const json=await res.json();
-      if(json.secure_url) regData.receiptUrl=json.secure_url;
-    }
     rProgUp(70,'SAVING...');
     // Save to localStorage
     try{
@@ -2307,7 +2221,6 @@ async function rSubmit(){
   }catch(err){console.error(err);rProg(false);showToast('❌ Error: '+err.message);}
 }
 
-function rDataURLtoBlob(d){const a=d.split(','),m=a[0].match(/:(.*?);/)[1],b=atob(a[1]);let n=b.length;const u=new Uint8Array(n);while(n--)u[n]=b.charCodeAt(n);return new Blob([u],{type:m});}
 
 function rShowSuccess(data){
   for(let i=1;i<=3;i++){const e=document.getElementById('rs'+i);if(e)e.style.display='none';}
