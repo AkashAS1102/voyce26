@@ -170,20 +170,6 @@ nav{position:fixed;top:0;width:100%;z-index:200;padding:14px 44px;display:flex;a
 .g-back-btn:hover{color:#fff;border-color:rgba(255,255,255,.28)}
 .g-tname{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:2px}
 #gsContent{min-height:360px;display:flex;flex-direction:column;gap:14px}
-/* LB */
-.lb-wrap{background:var(--glass);border:1px solid var(--gb);border-radius:12px;overflow:hidden}
-.lb-hd{padding:13px 18px;border-bottom:1px solid rgba(0,240,255,.1);display:flex;justify-content:space-between;align-items:center}
-.lb-ht{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--c);letter-spacing:1px}
-.lb-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .18s}
-.lb-row:hover{background:rgba(0,240,255,.04)}
-.lb-row:last-child{border-bottom:none}
-.lb-rank{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.78rem;text-align:center}
-.lb-nm{font-weight:600;font-size:.82rem;margin-bottom:1px}
-.lb-mt{font-size:.65rem;color:rgba(255,255,255,.28)}
-.lb-sc{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.82rem;text-align:right}
-.lb-empty{padding:32px;text-align:center;font-family:'Orbitron',sans-serif;font-size:.68rem;color:rgba(255,255,255,.16);letter-spacing:2px}
-.lb-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.lb-fb{padding:6px 12px;border-radius:5px;font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:1.5px;cursor:none;border:none;transition:all .22s}
 /* COORDINATORS */
 #coordinators{border-top:1px solid var(--gb)}
 .coord-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:40px}
@@ -474,19 +460,11 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
 <section id="games"><div class="sp">
   <div class="sec-lbl reveal">Fun Zone</div>
   <h2 class="sec-h reveal" style="text-align:center">🎮 <span>Game Arena</span></h2>
-  <p class="reveal" style="color:rgba(255,255,255,.4);font-size:.86rem;max-width:520px;margin:0 auto 36px;text-align:center;line-height:1.8">15 mini-games to challenge your mind! Score points, claim the leaderboard, represent your college.</p>
+  <p class="reveal" style="color:rgba(255,255,255,.4);font-size:.86rem;max-width:520px;margin:0 auto 36px;text-align:center;line-height:1.8">15 mini-games to challenge your mind. How high can you score?</p>
 
   <!-- HUB -->
   <div id="gHub">
     <div class="game-hub-grid" id="gCardsGrid"></div>
-    <div class="reveal" style="margin-top:8px">
-      <div class="sec-lbl" style="margin-bottom:14px">🏆 Leaderboard</div>
-      <div class="lb-filters" id="lbFilters"></div>
-      <div style="display:grid;grid-template-columns:1fr 185px;gap:16px;align-items:start" id="lbLayout">
-        <div class="lb-wrap" id="lbTable"></div>
-        <div class="lb-wrap" id="lbCollege" style="overflow:hidden"></div>
-      </div>
-    </div>
   </div>
 
   <!-- PLAY -->
@@ -499,18 +477,10 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
     <div id="gsContent"></div>
   </div>
 
-  <!-- SUBMIT -->
+  <!-- SCORE RESULT -->
   <div id="gSubmitArea">
-    <div style="background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:32px;text-align:center;width:100%;max-width:440px;animation:pop .35s ease both" id="scoreCard"></div>
-    <div style="background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:26px;width:100%;max-width:440px">
-      <div class="sec-lbl" style="margin-bottom:14px">Enter Your Details</div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div><label class="fi-label">Your Name</label><input class="fi" id="sn" placeholder="Enter your name"></div>
-        <div><label class="fi-label">College</label><input class="fi" id="sc" placeholder="Your college name"></div>
-        <button style="width:100%;background:linear-gradient(135deg,var(--c),#0080ff);border:none;color:#0A0F1C;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:2px;padding:13px;border-radius:6px;cursor:none;transition:opacity .25s,transform .25s;box-shadow:0 0 20px rgba(0,240,255,.24);text-transform:uppercase;margin-top:4px" id="sSubmitBtn" onclick="doSubmit()">🚀 Submit to Leaderboard</button>
-        <button class="g-back-btn" onclick="skipSubmit()" style="width:100%;text-align:center;font-size:.6rem">Skip — View Leaderboard</button>
-      </div>
-    </div>
+    <div style="background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:40px;text-align:center;width:100%;max-width:440px;animation:pop .35s ease both" id="scoreCard"></div>
+    <button class="g-back-btn" onclick="backToHub()" style="width:100%;max-width:440px;text-align:center;margin-top:8px">← PLAY AGAIN</button>
   </div>
 </div></section>
 <div class="divider"></div>
@@ -689,7 +659,7 @@ let galPhotos=[],galFilter='all',galSortTopLiked=false;
    3. Settings → Upload → Upload Presets → Add preset
       Name: voyce26_gallery  |  Signing: Unsigned
    ─────────────────────────────────────────────────────────── */
-const CLOUDINARY_CLOUD  = 'ddpntpbxg';    // ← replace
+const CLOUDINARY_CLOUD  = 'ddpntpbxg';    // Cloudinary cloud name
 const CLOUDINARY_PRESET = 'voyce26_gallery';    // ← your unsigned preset name
 
 /* Upload gallery image to Cloudinary, return secure URL */
@@ -932,79 +902,57 @@ const GAMES=[
   {id:'spotDiff',name:'Spot Difference',icon:'👁️',desc:'Find differences. 3 rounds — more diffs each round!',color:'#e879f9'},
 ];
 
-const STORAGE_KEY='voyce26_scores_v4';
 let scores=[],activeGame=null,finalScore=null,lbFilter='all';
+const STORAGE_KEY='voyce26_scores_v4';
 
 /* ── TECH WORDS BY DIFFICULTY ─────────────────────────────── */
 const WORDS_EASY=['array','loop','code','data','sort','null','bool','char','byte','int'];
 const WORDS_MED=['neural','syntax','lambda','kernel','binary','python','buffer','socket','thread','cursor'];
 const WORDS_HARD=['algorithm','recursion','polymorphism','encapsulation','abstraction','inheritance','typescript','deployment','repository','containerization'];
 
-/* Load scores — localStorage is primary (always works),
-   Supabase is used when configured for cross-device sharing */
+/* Load scores — localStorage primary, Supabase sync */
 async function loadScores(){
-  // Always load from localStorage first (instant, no network)
   let local=[];
   try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
-
-  // If Supabase is ready, merge with cloud scores
   if(window.__SB){
     try{
-      const{data,error}=await window.__SB
-        .from('scores').select('*').order('ts',{ascending:false});
+      const{data,error}=await window.__SB.from('scores').select('*').order('ts',{ascending:false});
       if(!error&&data&&data.length>0){
-        // Merge: combine cloud + local, deduplicate by id
         const all=[...data,...local];
         const seen=new Set();
-        const merged=all.filter(s=>{
-          const k=s.id||s.ts+'_'+s.game+'_'+s.name;
-          if(seen.has(k))return false;seen.add(k);return true;
-        });
-        return merged;
+        return all.filter(s=>{const k=s.id||(s.ts+'_'+s.game+'_'+s.name);if(seen.has(k))return false;seen.add(k);return true;});
       }
     }catch(e){console.warn('Supabase score load failed, using local:',e);}
   }
   return local;
 }
 
-/* Save score — always write to localStorage immediately,
-   then sync to Supabase in the background */
+/* Save score — localStorage immediately + Supabase background */
 async function persistScore(entry){
   try{
     entry.id=entry.id||('s_'+Date.now()+'_'+Math.random().toString(36).slice(2));
     entry.ts=new Date().toISOString();
-
-    // 1. Save to localStorage immediately (always works)
     let local=[];
     try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
     local.unshift(entry);
-    // Keep only last 500 scores in localStorage
     if(local.length>500)local=local.slice(0,500);
     localStorage.setItem(STORAGE_KEY,JSON.stringify(local));
-
-    // 2. Sync to Supabase in background (non-blocking)
     if(window.__SB){
       window.__SB.from('scores').insert([entry])
-        .then(({error})=>{ if(error) console.warn('Supabase sync failed:',error); })
+        .then(({error})=>{if(error)console.warn('Supabase sync failed:',error);})
         .catch(e=>console.warn('Supabase sync error:',e));
     }
-
-    // 3. Reload merged scores and update UI
-    const all=await loadScores();
-    return all;
-  }catch(err){
-    console.error('persistScore error:',err);
-    return scores;
-  }
+    return await loadScores();
+  }catch(err){console.error('persistScore error:',err);return scores;}
 }
 
 async function initGames(){scores=await loadScores();renderGameCards();renderLbFilters('all');renderLb('all');renderCollegeLb()}
 
 function renderGameCards(){
   const grid=document.getElementById('gCardsGrid');if(!grid)return;
+  const lowBetter=['reaction','slidePuzzle','timeEst'];
   grid.innerHTML=GAMES.map((g,i)=>{
     const gs=scores.filter(s=>s.game===g.id);
-    const lowBetter=['reaction','slidePuzzle','timeEst'];
     const best=gs.length?(lowBetter.includes(g.id)?Math.min(...gs.map(s=>s.score)):Math.max(...gs.map(s=>s.score))):null;
     const bs=best!==null?(g.id==='reaction'?best+'ms':g.id==='typing'?best+' WPM':g.id==='slidePuzzle'?best+'s':g.id==='timeEst'?best+'ms off':best):null;
     return `<div class="gc" style="animation-delay:${(i%8)*.07}s"
@@ -1022,31 +970,13 @@ function renderGameCards(){
   }).join('');
 }
 
-function scoreLabel(s){if(s.game==='reaction')return s.score+'ms';if(s.game==='typing')return s.score+' WPM';if(s.game==='slidePuzzle')return s.score+'s';if(s.game==='timeEst')return s.score+'ms off';return s.score}
-function renderLbFilters(active){lbFilter=active;const el=document.getElementById('lbFilters');if(!el)return;const all=[{id:'all',name:'ALL',icon:'⚙️',color:'#00F0FF'},...GAMES];el.innerHTML=all.map(g=>`<button class="lb-fb" style="background:${active===g.id?g.color+'14':'rgba(255,255,255,.05)'};color:${active===g.id?g.color:'rgba(255,255,255,.3)'};border:1px solid ${active===g.id?g.color+'44':'rgba(255,255,255,.07)'}" onclick="renderLbFilters('${g.id}');renderLb('${g.id}')">${g.icon} ${g.name}</button>`).join('')}
-function renderLb(filter){
-  const el=document.getElementById('lbTable');if(!el)return;
-  const lowBetter=['reaction','slidePuzzle','timeEst'];
-  let list=filter==='all'?[...scores].sort((a,b)=>b.ts>a.ts?1:-1).slice(0,12):[...scores].filter(s=>s.game===filter).sort((a,b)=>lowBetter.includes(filter)?a.score-b.score:b.score-a.score).slice(0,10);
-  const g=GAMES.find(x=>x.id===filter);
-  const hdr=`<div class="lb-hd"><div class="lb-ht">🏆 ${filter==='all'?'RECENT SCORES':'TOP 10 · '+(g?.name||'').toUpperCase()}</div><div style="font-size:.6rem;color:rgba(255,255,255,.2)">${list.length} entries</div></div>`;
-  if(!list.length){el.innerHTML=hdr+`<div class="lb-empty">NO SCORES YET · BE FIRST</div>`;return}
-  const rc=['#ffd700','#c0c0c0'],re=['🥇','🥈'];
-  el.innerHTML=hdr+list.map((s,i)=>{const gc=GAMES.find(x=>x.id===s.game)?.color||'var(--c)';const top=i<2&&filter!=='all';return `<div class="lb-row" style="background:${top?`rgba(${i===0?'255,215,0':'192,192,192'},.024)`:''}">`+`<div class="lb-rank" style="color:${top?rc[i]:'rgba(255,255,255,.18)'}">${filter!=='all'&&i<2?re[i]:'#'+(i+1)}</div>`+`<div><div class="lb-nm">${s.name}</div><div class="lb-mt">🏫 ${s.college}${filter==='all'?' <span style="color:'+gc+'">· '+s.gameName+'</span>':''}</div></div>`+`<div class="lb-sc" style="color:${top?rc[i]:gc}">${scoreLabel(s)}</div></div>`}).join('')
-}
-function renderCollegeLb(){const el=document.getElementById('lbCollege');if(!el)return;const map={};scores.forEach(s=>{map[s.college]=(map[s.college]||0)+1});const top=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);if(!top.length){el.innerHTML=`<div class="lb-hd"><div class="lb-ht" style="font-size:.62rem">🏫 COLLEGE BATTLE</div></div><div class="lb-empty" style="font-size:.62rem">No data yet</div>`;return}const max=top[0][1];el.innerHTML=`<div class="lb-hd"><div class="lb-ht" style="font-size:.62rem">🏫 COLLEGE BATTLE</div></div><div style="padding:14px">`+top.map(([c,n],i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:.68rem;color:${i===0?'#ffd700':'rgba(255,255,255,.48)'}">${c}</span><span style="font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--c)">${n}</span></div><div style="height:3px;background:rgba(0,240,255,.08);border-radius:2px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${i===0?'linear-gradient(90deg,#ffd700,#ff9500)':'linear-gradient(90deg,var(--c),#0080ff)'};width:${(n/max*100).toFixed(0)}%"></div></div></div>`).join('')+`</div>`}
-
-/* FLOW */
-function showHub(){document.getElementById('gHub').style.display='block';document.getElementById('gPlayArea').style.display='none';document.getElementById('gSubmitArea').style.display='none';renderGameCards();renderLb(lbFilter);renderCollegeLb()}
-function backToHub(){clearAllTimers();showHub()}
-let allTimers=[];function clearAllTimers(){allTimers.forEach(t=>{clearTimeout(t);clearInterval(t)});allTimers=[]}
-
 function startGame(id){
   activeGame=GAMES.find(g=>g.id===id);
   document.getElementById('gHub').style.display='none';
   document.getElementById('gSubmitArea').style.display='none';
   document.getElementById('gPlayArea').style.display='block';
   const nb=document.getElementById('gPlayName');nb.textContent=activeGame.icon+' '+activeGame.name;nb.style.color=activeGame.color;
+  clearAllTimers();
   showGameIntro();
   setTimeout(()=>document.getElementById('games').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
@@ -1080,6 +1010,24 @@ function showGameIntro(){
 }
 function doCountdown(){let c=3;document.getElementById('gsContent').innerHTML=`<div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:280px"><div id="cdN" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:8rem;color:${activeGame.color};text-shadow:0 0 44px ${activeGame.color};line-height:1">${c}</div></div>`;const iv=setInterval(()=>{c--;const el=document.getElementById('cdN');if(!el){clearInterval(iv);return}if(c<=0){clearInterval(iv);launchGame()}else{el.textContent=c;el.style.animation='none';void el.offsetWidth;el.style.animation='cdPop .6s ease'}},900);allTimers.push(iv)}
 
+function scoreLabel(s){if(s.game==='reaction')return s.score+'ms';if(s.game==='typing')return s.score+' WPM';if(s.game==='slidePuzzle')return s.score+'s';if(s.game==='timeEst')return s.score+'ms off';return s.score}
+function renderLbFilters(active){lbFilter=active;const el=document.getElementById('lbFilters');if(!el)return;const all=[{id:'all',name:'ALL',icon:'⚙️',color:'#00F0FF'},...GAMES];el.innerHTML=all.map(g=>`<button class="lb-fb" style="background:${active===g.id?g.color+'14':'rgba(255,255,255,.05)'};color:${active===g.id?g.color:'rgba(255,255,255,.3)'};border:1px solid ${active===g.id?g.color+'44':'rgba(255,255,255,.07)'}" onclick="renderLbFilters('${g.id}');renderLb('${g.id}')">${g.icon} ${g.name}</button>`).join('')}
+function renderLb(filter){
+  const el=document.getElementById('lbTable');if(!el)return;
+  const lowBetter=['reaction','slidePuzzle','timeEst'];
+  let list=filter==='all'?[...scores].sort((a,b)=>b.ts>a.ts?1:-1).slice(0,12):[...scores].filter(s=>s.game===filter).sort((a,b)=>lowBetter.includes(filter)?a.score-b.score:b.score-a.score).slice(0,10);
+  const g=GAMES.find(x=>x.id===filter);
+  const hdr=`<div class="lb-hd"><div class="lb-ht">🏆 ${filter==='all'?'RECENT SCORES':'TOP 10 · '+(g?.name||'').toUpperCase()}</div><div style="font-size:.6rem;color:rgba(255,255,255,.2)">${list.length} entries</div></div>`;
+  if(!list.length){el.innerHTML=hdr+`<div class="lb-empty">NO SCORES YET · BE FIRST</div>`;return}
+  const rc=['#ffd700','#c0c0c0'],re=['🥇','🥈'];
+  el.innerHTML=hdr+list.map((s,i)=>{const gc=GAMES.find(x=>x.id===s.game)?.color||'var(--c)';const top=i<2&&filter!=='all';return `<div class="lb-row" style="background:${top?`rgba(${i===0?'255,215,0':'192,192,192'},.024)`:''}">`+`<div class="lb-rank" style="color:${top?rc[i]:'rgba(255,255,255,.18)'}">${filter!=='all'&&i<2?re[i]:'#'+(i+1)}</div>`+`<div><div class="lb-nm">${s.name}</div><div class="lb-mt">🏫 ${s.college}${filter==='all'?' <span style="color:'+gc+'">· '+s.gameName+'</span>':''}</div></div>`+`<div class="lb-sc" style="color:${top?rc[i]:gc}">${scoreLabel(s)}</div></div>`}).join('')
+}
+function renderCollegeLb(){const el=document.getElementById('lbCollege');if(!el)return;const map={};scores.forEach(s=>{map[s.college]=(map[s.college]||0)+1});const top=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);if(!top.length){el.innerHTML=`<div class="lb-hd"><div class="lb-ht" style="font-size:.62rem">🏫 COLLEGE BATTLE</div></div><div class="lb-empty" style="font-size:.62rem">No data yet</div>`;return}const max=top[0][1];el.innerHTML=`<div class="lb-hd"><div class="lb-ht" style="font-size:.62rem">🏫 COLLEGE BATTLE</div></div><div style="padding:14px">`+top.map(([c,n],i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:.68rem;color:${i===0?'#ffd700':'rgba(255,255,255,.48)'}">${c}</span><span style="font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--c)">${n}</span></div><div style="height:3px;background:rgba(0,240,255,.08);border-radius:2px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${i===0?'linear-gradient(90deg,#ffd700,#ff9500)':'linear-gradient(90deg,var(--c),#0080ff)'};width:${(n/max*100).toFixed(0)}%"></div></div></div>`).join('')+`</div>`}
+
+function showHub(){document.getElementById('gHub').style.display='block';document.getElementById('gPlayArea').style.display='none';document.getElementById('gSubmitArea').style.display='none';renderGameCards();renderLb(lbFilter);renderCollegeLb()}
+function backToHub(){clearAllTimers();showHub()}
+let allTimers=[];function clearAllTimers(){allTimers.forEach(t=>{clearTimeout(t);clearInterval(t)});allTimers=[]}
+
 function gameEnded(score){
   finalScore=score;clearAllTimers();
   document.getElementById('gHub').style.display='none';
@@ -1091,6 +1039,7 @@ function gameEnded(score){
   document.getElementById('sn').value='';document.getElementById('sc').value='';
   setTimeout(()=>document.getElementById('games').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
+
 async function doSubmit(){
   const name=document.getElementById('sn').value.trim(),college=document.getElementById('sc').value.trim();
   if(!name||!college){const b=document.getElementById('sSubmitBtn');b.textContent='Fill all fields!';setTimeout(()=>b.textContent='🚀 Submit to Leaderboard',1600);return}
@@ -1105,12 +1054,11 @@ async function doSubmit(){
     ${rank?`<div style="color:rgba(255,255,255,.42);font-size:.85rem">You rank <span style="color:${activeGame.color};font-family:'Orbitron',sans-serif;font-weight:700">#${rank}</span> in ${activeGame.name}</div>`:''}
     <div style="display:flex;gap:10px;justify-content:center;margin-top:20px">
       <button style="background:transparent;border:2px solid ${activeGame.color};color:${activeGame.color};font-family:'Orbitron',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:2px;padding:8px 16px;border-radius:4px;cursor:none;transition:all .22s" onclick="startGame(activeGame.id)" onmouseenter="this.style.background='${activeGame.color}12'" onmouseleave="this.style.background='transparent'">🔄 Play Again</button>
-      <button class="g-back-btn" onclick="showHub();renderLbFilters(activeGame.id);renderLb(activeGame.id)" style="font-size:.62px;padding:8px 16px">🏆 Leaderboard</button>
+      <button class="g-back-btn" onclick="showHub();renderLbFilters(activeGame.id);renderLb(activeGame.id)" style="font-size:.62rem;padding:8px 16px">🏆 Leaderboard</button>
     </div>
   </div>`;
 }
 function skipSubmit(){showHub()}
-
 function launchGame(){
   const map={reaction:launchReaction,memory:launchMemory,typing:launchTyping,number:launchNumber,codebreaker:launchCodeBreaker,pattern:launchPattern,quiz:launchQuiz,mathRush:launchMathRush,findBug:launchFindBug,slidePuzzle:launchSlidePuzzle,timeEst:launchTimeEst,spinWheel:launchSpinWheel,scramble:launchScramble,aiDecision:launchAiDecision,spotDiff:launchSpotDiff};
   (map[activeGame.id]||showGameIntro)();
@@ -1659,9 +1607,7 @@ function startSdRound(){
   };
 }
 function bonus(r){return r===1?20:r===2?0:-10}
-
-/* INIT — Supabase must be ready before games init, so we defer */
-// initGames() is called after Supabase block below
+// initGames() called below after Supabase is ready
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -1791,8 +1737,9 @@ let _posterQrBuilt=false;
 function openGalleryQrPoster(){
   document.getElementById('galleryQrPosterModal').style.display='flex';
   if(!_posterQrBuilt){
-    const base=window.location.origin+window.location.pathname;
-    const url=base+'?verify='+GALLERY_TOKEN;
+    // Always use the live GitHub Pages URL so QR works regardless of where page is opened
+    const liveBase='https://akashas1102.github.io/voyce26/';
+    const url=liveBase+'?verify='+GALLERY_TOKEN;
     document.getElementById('posterQrUrl').textContent=url;
     const box=document.getElementById('posterQrBox');
     box.innerHTML='';
@@ -1800,7 +1747,7 @@ function openGalleryQrPoster(){
       new QRCode(box,{text:url,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
       _posterQrBuilt=true;
     }catch(e){
-      box.innerHTML='<div style="font-size:.65rem;color:#999;padding:10px;text-align:center;line-height:1.6">Open on live website<br>to generate QR</div>';
+      box.innerHTML='<div style="font-size:.65rem;color:#999;padding:10px;text-align:center;line-height:1.6">Error generating QR</div>';
     }
   }
 }
@@ -1834,8 +1781,8 @@ function printGalleryQr(){
     ${src?`<img src="${src}" alt="QR Code">`:''}
     <div class="badge">📸 UPLOAD YOUR MEMORIES</div>
     <div class="inst">
-      1. Open your phone camera<br>
-      2. <span>Point at this QR code</span><br>
+      1. Open your phone <span>Camera app</span><br>
+      2. Point at this QR code<br>
       3. Tap the link that appears<br>
       4. Gallery upload unlocks instantly ✅
     </div>
@@ -1855,35 +1802,23 @@ updateUploadTriggerUI();
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
-     SUPABASE CONFIG — FOR GAME SCORES & LEADERBOARD ONLY
-     ────────────────────────────────────────────────────────────────
-     Registrations → Google Sheets  |  Images → Cloudinary
-     Game scores & leaderboard → Supabase (only 1 table needed)
-     ────────────────────────────────────────────────────────────────
-     Replace the 2 values below with your Supabase project keys:
-     supabase.com → Your Project → Settings → API
+     SUPABASE — GAME SCORES ONLY
      ════════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ▼▼▼ REPLACE THESE 2 VALUES WITH YOUR SUPABASE CONFIG ▼▼▼
-  const SUPABASE_URL  = 'https://zmyshcsnbxewstlqhdtt.supabase.co';   // e.g. https://xyzxyz.supabase.co
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteXNoY3NuYnhld3N0bHFoZHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTc5NTAsImV4cCI6MjA4OTM5Mzk1MH0.yXXdFONiYPgnxyzMgH4m9ZP7YFVScF0NSKk1iymY7cI';       // long string starting with eyJ...
-  // ▲▲▲ REPLACE THESE 2 VALUES WITH YOUR SUPABASE CONFIG ▲▲▲
+  // Real Supabase credentials
+  const SUPABASE_URL  = 'https://zmyshcsnbxewstlqhdtt.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpteXNoY3NuYnhld3N0bHFoZHR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTc5NTAsImV4cCI6MjA4OTM5Mzk1MH0.yXXdFONiYPgnxyzMgH4m9ZP7YFVScF0NSKk1iymY7cI';
 
   try {
-    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-      window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-      console.log('✅ Supabase ready');
-    } else {
-      window.__SB = null;
-      console.warn('Supabase not configured — scores saved to localStorage');
-    }
+    window.__SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    console.log('✅ Supabase ready');
   } catch(e) {
     window.__SB = null;
     console.warn('Supabase error:', e);
   }
 
-  // Init games AFTER Supabase is ready so loadScores can use it
+  // Init games AFTER Supabase so loadScores can sync cloud data
   initGames();
 </script>
 
@@ -1986,41 +1921,40 @@ updateUploadTriggerUI();
       <!-- Step 3: Payment -->
       <div id="rs3" style="display:none">
         <div class="rcard"><div class="rcard-title">💳 Make Payment</div>
+          <!-- Amount -->
           <div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,165,0,.05));border:1px solid rgba(255,215,0,.3);border-radius:11px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
             <div><div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:rgba(255,215,0,.5);margin-bottom:4px">AMOUNT TO PAY</div><div style="font-size:.74rem;color:rgba(255,255,255,.4)" id="rpEvList">—</div></div>
             <div style="text-align:right"><div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:2.2rem;color:#ffd700;text-shadow:0 0 18px rgba(255,215,0,.4)">₹<span id="rpAmt">0</span></div><div style="font-size:.58rem;color:rgba(255,215,0,.42);font-family:'Orbitron',sans-serif;letter-spacing:1px">ONE-TIME · ALL EVENTS</div></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:18px">
-            <div>
-              <div style="font-size:.6rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:8px">SCAN QR TO PAY</div>
-              <div style="background:rgba(255,255,255,.96);border-radius:12px;padding:12px;text-align:center">
-                <div style="width:148px;height:148px;background:#f5f5f5;border-radius:6px;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:.58rem;color:#999" id="rpQrInner">Loading QR...</div>
-                <div style="font-family:'Orbitron',sans-serif;font-size:.54rem;letter-spacing:1.5px;color:#444;margin-top:6px">VOYCE'26 PAYMENT</div>
-              </div>
+          <!-- UPI details -->
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+            <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);border-radius:9px;padding:14px 16px">
+              <div style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:6px">UPI ID — SEND PAYMENT TO</div>
+              <div style="font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:var(--c);word-break:break-all;margin-bottom:10px" id="rpUpiId">voyce26@upi</div>
+              <button onclick="rCopyUpi()" style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 14px;border-radius:5px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.26);color:var(--c);cursor:none;transition:all .2s">📋 COPY UPI ID</button>
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);border-radius:9px;padding:13px 15px">
-                <div style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:5px">UPI ID</div>
-                <div style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:var(--c);word-break:break-all;margin-bottom:9px" id="rpUpiId">voyce26@upi</div>
-                <button onclick="rCopyUpi()" style="font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:1.5px;padding:5px 12px;border-radius:5px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.26);color:var(--c);cursor:none;transition:all .2s">📋 COPY</button>
-              </div>
-              <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.18);border-radius:9px;padding:11px 14px">
-                <div style="font-size:.58rem;letter-spacing:2px;color:rgba(34,197,94,.55);font-family:'Orbitron',sans-serif;margin-bottom:5px">ACCEPTED APPS</div>
-                <div style="font-size:.74rem;color:rgba(255,255,255,.5);line-height:1.9">GPay · PhonePe · Paytm<br>BHIM · Amazon Pay</div>
-              </div>
+            <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.18);border-radius:9px;padding:12px 16px">
+              <div style="font-size:.58rem;letter-spacing:2px;color:rgba(34,197,94,.55);font-family:'Orbitron',sans-serif;margin-bottom:6px">ACCEPTED APPS</div>
+              <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:2">GPay &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; Paytm &nbsp;·&nbsp; BHIM &nbsp;·&nbsp; Amazon Pay</div>
             </div>
           </div>
-          <div style="background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.18);border-radius:9px;padding:13px 15px;margin-bottom:18px">
-            <div style="font-family:'Orbitron',sans-serif;font-size:.58rem;color:rgba(255,149,0,.65);letter-spacing:2px;margin-bottom:9px">HOW TO PAY</div>
-            <div style="display:flex;flex-direction:column;gap:7px;font-size:.76rem;color:rgba(255,255,255,.45)">
-              <div>1. Open any UPI app (GPay / PhonePe / Paytm)</div>
-              <div>2. Scan QR code or enter UPI ID above</div>
-              <div>3. Pay exact amount <strong style="color:#ffd700;font-family:'Orbitron',sans-serif">₹<span id="rpAmtInline">0</span></strong></div>
-              <div>4. Click <strong style="color:#fff">Submit Registration</strong> below</div>
-            </div>
+          <!-- Receipt upload -->
+          <div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:rgba(255,149,0,.65);margin-bottom:10px">📸 UPLOAD PAYMENT RECEIPT</div>
+          <div id="rReceiptDrop" style="border:2px dashed rgba(0,240,255,.25);border-radius:12px;padding:24px 18px;text-align:center;cursor:none;transition:all .28s;background:rgba(0,240,255,.02);margin-bottom:6px"
+            onclick="document.getElementById('rReceiptFile').click()"
+            ondragover="this.style.borderColor='var(--c)';event.preventDefault()"
+            ondragleave="this.style.borderColor='rgba(0,240,255,.25)'"
+            ondrop="rReceiptDrop(event)">
+            <div style="font-size:2rem;margin-bottom:7px" id="rReceiptIcon">🧾</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:.68rem;color:var(--c);letter-spacing:2px;margin-bottom:3px" id="rReceiptTitle">TAP TO UPLOAD RECEIPT</div>
+            <div style="font-size:.64rem;color:rgba(255,255,255,.26)" id="rReceiptSub">JPG · PNG · PDF · Max 5MB</div>
+            <img id="rReceiptPreview" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;display:none;border:1px solid rgba(0,240,255,.15);margin-top:10px" alt="Receipt">
+            <div id="rReceiptChange" style="display:none;font-size:.62rem;color:rgba(0,240,255,.5);margin-top:6px;font-family:'Orbitron',sans-serif;letter-spacing:1px">Tap to change</div>
           </div>
+          <input type="file" id="rReceiptFile" accept="image/*,application/pdf" style="display:none" onchange="rReceiptSelect(this)">
+          <div class="rerr" id="reReceipt" style="margin-bottom:14px">Please upload your payment receipt</div>
           <div style="display:flex;flex-direction:column;gap:9px">
-            <button class="rsub" onclick="rGoStep(4)">🚀 SUBMIT REGISTRATION</button>
+            <button class="rsub" onclick="rGoStep(4)">✅ DONE — SUBMIT REGISTRATION</button>
             <button class="rsec" onclick="rGoStep(2)">← BACK</button>
           </div>
         </div>
@@ -2122,9 +2056,9 @@ const RSTORAGE_KEY = 'voyce26_registrations_v2';
    Steps are printed in the browser console on first load.
    Leave as '' to skip (data still saves locally).
 ─────────────────────────────────────────────────────────────── */
-const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyptrhJImR2jDLNv666dwnTXPMdHV9o3XknbeYCcV8hMnnDMldbUulUWHzKIXMVCHhj/exec';   // ← paste your Apps Script URL here
+const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyptrhJImR2jDLNv666dwnTXPMdHV9o3XknbeYCcV8hMnnDMldbUulUWHzKIXMVCHhj/exec';
 
-let rStep=1,rSelEvs=[],rQrDone=false;
+let rStep=1, rSelEvs=[], rReceiptDataURL=null, rReceiptBlob=null;
 
 function rRenderEvents(){
   function cardH(ev,i){
@@ -2154,27 +2088,48 @@ window.closeRegOverlay=function(){
   setTimeout(()=>{
     document.getElementById('regOverlay').style.display='none';
     document.body.style.overflow='';
-    rStep=1;rSelEvs=[];rQrDone=false;
+    rStep=1; rSelEvs=[]; rReceiptDataURL=null; rReceiptBlob=null;
     for(let i=1;i<=4;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===1?'block':'none';}
     document.getElementById('rStepper').style.display='flex';
-    rUpdateStepper(1);rUpdateTotal();
+    rUpdateStepper(1); rUpdateTotal();
+    // Reset receipt upload UI
+    const icon=document.getElementById('rReceiptIcon');
+    const title=document.getElementById('rReceiptTitle');
+    const sub=document.getElementById('rReceiptSub');
+    const prev=document.getElementById('rReceiptPreview');
+    const chg=document.getElementById('rReceiptChange');
+    if(icon){icon.style.display='block';icon.textContent='🧾';}
+    if(title){title.style.display='block';}
+    if(sub){sub.style.display='block';}
+    if(prev){prev.style.display='none';prev.src='';}
+    if(chg){chg.style.display='none';}
+    const fi=document.getElementById('rReceiptFile');
+    if(fi) fi.value='';
+    rShowErr('reReceipt',false);
     RCFG.EVENTS.forEach((_,i)=>{const c=document.getElementById('revc'+i),cb=document.getElementById('rcb'+i);if(c)c.classList.remove('rsel');if(cb)cb.classList.remove('rsel');});
   },380);
 };
 
-function rUpdateStepper(s){for(let i=1;i<=4;i++){const el=document.getElementById('rsi'+i);if(el)el.className='rs-item '+(i<s?'done':i===s?'active':'');}}
+function rUpdateStepper(s){
+  for(let i=1;i<=4;i++){const el=document.getElementById('rsi'+i);if(el)el.className='rs-item '+(i<s?'done':i===s?'active':'');}
+}
 
 function rGoStep(n){
-  if(n>rStep){if(rStep===1&&!rVal1())return;if(rStep===2&&!rVal2())return;}
+  if(n>rStep){
+    if(rStep===1&&!rVal1())return;
+    if(rStep===2&&!rVal2())return;
+    if(rStep===3&&!rVal3())return;
+  }
   for(let i=1;i<=4;i++){const el=document.getElementById('rs'+i);if(el)el.style.display=i===n?'block':'none';}
-  rStep=n;rUpdateStepper(n);
-  if(n===3)rSetupPay();
-  if(n===4)rSubmit(); // payment step button goes straight to submit
+  rStep=n; rUpdateStepper(n);
+  if(n===3) rSetupPay();
+  if(n===4) rSubmit();
   document.getElementById('regPanel').scrollTo({top:0,behavior:'smooth'});
 }
 
 function rShowErr(id,show){const el=document.getElementById(id);if(el){el.style.display=show?'block':'none';el.classList.toggle('show',show);}}
 function rMark(id,err){const el=document.getElementById(id);if(el)el.classList.toggle('rerr-fi',err);}
+
 function rVal1(){
   let ok=true;
   const n=document.getElementById('rfName').value.trim(),c=document.getElementById('rfCollege').value.trim(),p=document.getElementById('rfPhone').value.trim(),em=document.getElementById('rfEmail').value.trim(),d=document.getElementById('rfDept').value,y=document.getElementById('rfYear').value;
@@ -2183,6 +2138,10 @@ function rVal1(){
   return ok;
 }
 function rVal2(){if(rSelEvs.length===0){rShowErr('reEv',true);return false;}rShowErr('reEv',false);return true;}
+function rVal3(){
+  if(!rReceiptDataURL){rShowErr('reReceipt',true);return false;}
+  rShowErr('reReceipt',false);return true;
+}
 
 function rToggleEv(i){
   const card=document.getElementById('revc'+i),cb=document.getElementById('rcb'+i);
@@ -2206,23 +2165,60 @@ function rUpdateTotal(){
 }
 function rGetTotal(){return rSelEvs.length>0?RCFG.FLAT_FEE:0;}
 
+/* Payment step setup — show UPI details */
 function rSetupPay(){
-  const total=rGetTotal(),evNames=rSelEvs.map(i=>RCFG.EVENTS[i].name).join(', '),cnt=rSelEvs.length;
+  const total=rGetTotal(), evNames=rSelEvs.map(i=>RCFG.EVENTS[i].name).join(', '), cnt=rSelEvs.length;
   document.getElementById('rpAmt').textContent=total;
-  document.getElementById('rpAmtInline').textContent=total;
   document.getElementById('rpEvList').textContent='Events: '+evNames+' ('+cnt+' event'+(cnt>1?'s':'')+')';
   document.getElementById('rpUpiId').textContent=RCFG.UPI_ID;
-  if(!rQrDone){
-    try{
-      const upiUrl=`upi://pay?pa=${RCFG.UPI_ID}&pn=${encodeURIComponent(RCFG.UPI_NAME)}&am=${total}&cu=INR&tn=${encodeURIComponent('VOYCE26 Registration')}`;
-      document.getElementById('rpQrInner').innerHTML='';
-      new QRCode(document.getElementById('rpQrInner'),{text:upiUrl,width:148,height:148,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
-      rQrDone=true;
-    }catch(e){document.getElementById('rpQrInner').innerHTML='<div style="font-size:.58rem;color:#888;text-align:center;padding:10px">Use UPI ID above</div>';}
-  }
 }
 function rCopyUpi(){
   navigator.clipboard.writeText(RCFG.UPI_ID).then(()=>showToast('✅ UPI ID Copied!')).catch(()=>{const t=document.createElement('textarea');t.value=RCFG.UPI_ID;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);showToast('✅ UPI ID Copied!');});
+}
+
+/* Receipt upload handlers */
+function rReceiptDrop(e){
+  e.preventDefault();
+  document.getElementById('rReceiptDrop').style.borderColor='rgba(0,240,255,.25)';
+  const f=e.dataTransfer.files[0];
+  if(f) rProcessReceipt(f);
+}
+function rReceiptSelect(inp){
+  const f=inp.files[0]; if(f) rProcessReceipt(f);
+}
+function rProcessReceipt(file){
+  if(file.size>5*1024*1024){rShowErr('reReceipt',true);document.getElementById('reReceipt').textContent='File too large. Max 5MB.';return;}
+  rShowErr('reReceipt',false);
+  const reader=new FileReader();
+  reader.onload=e=>{
+    rReceiptDataURL=e.target.result;
+    // Show preview if image
+    if(file.type.startsWith('image/')){
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=1200;let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        rReceiptDataURL=cv.toDataURL('image/jpeg',.85);
+        cv.toBlob(blob=>{rReceiptBlob=blob;},'image/jpeg',.85);
+        const pv=document.getElementById('rReceiptPreview');
+        pv.src=rReceiptDataURL; pv.style.display='block';
+        document.getElementById('rReceiptIcon').style.display='none';
+        document.getElementById('rReceiptTitle').style.display='none';
+        document.getElementById('rReceiptSub').style.display='none';
+        document.getElementById('rReceiptChange').style.display='block';
+      };
+      img.src=e.target.result;
+    } else {
+      // PDF — show filename indicator
+      document.getElementById('rReceiptIcon').textContent='📄';
+      document.getElementById('rReceiptTitle').textContent=file.name;
+      document.getElementById('rReceiptSub').textContent='PDF receipt uploaded ✓';
+      document.getElementById('rReceiptChange').style.display='block';
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 function rGenId(){return'VCE26-'+Math.random().toString(36).substr(2,4).toUpperCase()+Date.now().toString(36).toUpperCase().slice(-3);}
@@ -2258,14 +2254,26 @@ async function rSubmit(){
     year:document.getElementById('rfYear').value,
     gender:document.getElementById('rfGender').value,
     events:rSelEvs.map(i=>RCFG.EVENTS[i].name),
-    amount:rGetTotal(),flatFee:true,status:'pending',
+    amount:rGetTotal(), flatFee:true, status:'pending',
     ts:new Date().toISOString(),
+    receiptUrl: rReceiptDataURL || '',
   };
-  rProg(true,'SUBMITTING REGISTRATION...',30);
+  rProg(true,'UPLOADING RECEIPT...',20);
   try{
-    await new Promise(r=>setTimeout(r,600));
+    // Upload receipt to Cloudinary
+    if(rReceiptDataURL && CLOUDINARY_CLOUD !== 'YOUR_CLOUD_NAME'){
+      rProgUp(30,'UPLOADING RECEIPT...');
+      const blob=rReceiptBlob||rDataURLtoBlob(rReceiptDataURL);
+      const fd=new FormData();
+      fd.append('file',blob);
+      fd.append('upload_preset',CLOUDINARY_PRESET);
+      fd.append('folder','voyce26_payments');
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const json=await res.json();
+      if(json.secure_url) regData.receiptUrl=json.secure_url;
+    }
     rProgUp(70,'SAVING...');
-    // Save to localStorage as local backup
+    // Save to localStorage
     try{
       let ex=[];
       try{const r=localStorage.getItem(RSTORAGE_KEY);ex=r?JSON.parse(r):[];}catch(e){}
@@ -2274,19 +2282,27 @@ async function rSubmit(){
     }catch(e){}
     rProgUp(95,'FINALIZING...');
     await new Promise(r=>setTimeout(r,400));
-    sendToSheets(regData); // fire-and-forget to Google Sheets
+    sendToSheets(regData);
     rProg(false);
     rShowSuccess(regData);
   }catch(err){console.error(err);rProg(false);showToast('❌ Error: '+err.message);}
 }
+
+function rDataURLtoBlob(d){const a=d.split(','),m=a[0].match(/:(.*?);/)[1],b=atob(a[1]);let n=b.length;const u=new Uint8Array(n);while(n--)u[n]=b.charCodeAt(n);return new Blob([u],{type:m});}
+
 function rShowSuccess(data){
   for(let i=1;i<=3;i++){const e=document.getElementById('rs'+i);if(e)e.style.display='none';}
   document.getElementById('rStepper').style.display='none';
   document.getElementById('rFinalId').textContent=data.regId;
-  document.getElementById('rFinalDetails').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem"><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">NAME</span><span style="color:#fff;font-weight:500">${data.name}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PHONE</span><span style="color:#fff">${data.phone}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div><div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div></div>`;
-  rUpdateStepper(4);document.getElementById('rs4').style.display='block';
+  document.getElementById('rFinalDetails').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem">
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">NAME</span><span style="color:#fff;font-weight:500">${data.name}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PHONE</span><span style="color:#fff">${data.phone}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div>
+  </div>`;
+  rUpdateStepper(4); document.getElementById('rs4').style.display='block';
   document.getElementById('regPanel').scrollTo({top:0,behavior:'smooth'});
 }
-
 </script>
 </body></html>
