@@ -2699,12 +2699,20 @@ async function rSubmit(){
     ts:new Date().toISOString(),
   };
   rProg(true,'SUBMITTING...',20);
+  
   // Upload screenshot if provided
   if(window.txnScreenshotData){
     rProgUp(40,'UPLOADING SCREENSHOT...');
     const screenshotUrl=await uploadTxnScreenshot();
-    if(screenshotUrl)regData.screenshotUrl=screenshotUrl;
+    if(screenshotUrl) {
+      regData.screenshotUrl = screenshotUrl; // Keep this so the success UI can build the "View ↗" link
+      
+      // *** THE MAGIC TRICK ***
+      // We append the URL to the txnId so the existing Apps Script saves it in the same column!
+      regData.txnId = regData.txnId + " | URL: " + screenshotUrl; 
+    }
   }
+  
   try{
     rProgUp(70,'SAVING...');
     // Save to localStorage
@@ -2714,14 +2722,24 @@ async function rSubmit(){
       ex.push(regData);
       localStorage.setItem(RSTORAGE_KEY,JSON.stringify(ex));
     }catch(e){}
+    
     rProgUp(95,'FINALIZING...');
     await new Promise(r=>setTimeout(r,400));
+    
+    // Sends the modified regData to your existing Apps Script
     sendToSheets(regData);
+    
     // Reset screenshot state
     window.txnScreenshotData=null;
     rProg(false);
+    
+    // Show success screen
     rShowSuccess(regData);
-  }catch(err){console.error(err);rProg(false);showToast('❌ Error: '+err.message);}
+  }catch(err){
+    console.error(err);
+    rProg(false);
+    showToast('❌ Error: '+err.message);
+  }
 }
 
 
