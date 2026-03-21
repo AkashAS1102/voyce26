@@ -3520,10 +3520,54 @@ function launchAirHockey(){
    ROOM CODE MULTIPLAYER ENGINE (localStorage-based, same-LAN tabs)
 ══════════════════════════════════════════════════════════════ */
 function genRoomCode(){return Math.random().toString(36).substr(2,6).toUpperCase();}
-function rmKey(code,game){return`voyce26_room_${game}_${code}`;}
-function rmWrite(code,game,state){try{localStorage.setItem(rmKey(code,game),JSON.stringify({...state,ts:Date.now()}));}catch(e){}}
-function rmRead(code,game){try{const d=localStorage.getItem(rmKey(code,game));return d?JSON.parse(d):null;}catch(e){return null;}}
-function rmClear(code,game){try{localStorage.removeItem(rmKey(code,game));}catch(e){}}
+function rmKey(code,game){return`${game}_${code}`;}
+
+/* ── Supabase-backed room engine (cross-device) ─────────────
+   Falls back to localStorage if Supabase is unavailable.
+   Requires a 'rooms' table — run once in Supabase SQL editor:
+   CREATE TABLE IF NOT EXISTS rooms (
+     id TEXT PRIMARY KEY,
+     state JSONB NOT NULL,
+     updated_at TIMESTAMPTZ DEFAULT NOW()
+   );
+   ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "Allow all" ON rooms FOR ALL USING (true) WITH CHECK (true);
+─────────────────────────────────────────────────────────── */
+async function rmWrite(code,game,state){
+  const key=rmKey(code,game);
+  const payload={...state,ts:Date.now()};
+  // Always write to localStorage as instant local cache
+  try{localStorage.setItem('voyce26_room_'+key,JSON.stringify(payload));}catch(e){}
+  // Write to Supabase for cross-device sync
+  if(window.__SB){
+    try{
+      await window.__SB.from('rooms').upsert({id:key,state:payload,updated_at:new Date().toISOString()});
+    }catch(e){console.warn('rmWrite Supabase error:',e);}
+  }
+}
+async function rmRead(code,game){
+  const key=rmKey(code,game);
+  // Try Supabase first for freshest cross-device state
+  if(window.__SB){
+    try{
+      const{data,error}=await window.__SB.from('rooms').select('state').eq('id',key).single();
+      if(!error&&data){
+        // Also update local cache
+        try{localStorage.setItem('voyce26_room_'+key,JSON.stringify(data.state));}catch(e){}
+        return data.state;
+      }
+    }catch(e){}
+  }
+  // Fallback: localStorage (same-device tabs still work)
+  try{const d=localStorage.getItem('voyce26_room_'+key);return d?JSON.parse(d):null;}catch(e){return null;}
+}
+async function rmClear(code,game){
+  const key=rmKey(code,game);
+  try{localStorage.removeItem('voyce26_room_'+key);}catch(e){}
+  if(window.__SB){
+    try{await window.__SB.from('rooms').delete().eq('id',key);}catch(e){}
+  }
+}
 
 // Generic room lobby UI — returns {roomCode, playerNum} via callback
 function showRoomLobby(gameId,gameIcon,gameName,gameColor,onStart){
@@ -3547,11 +3591,11 @@ function showRoomLobby(gameId,gameIcon,gameName,gameColor,onStart){
       <div id="lobbyStatus"></div>
       <button onclick="backToMPHub()" style="margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.58rem;padding:6px 16px;border-radius:5px;cursor:pointer;letter-spacing:1px">← BACK</button>
     </div>`;
-    window.lobbyCreate=()=>{
+    window.lobbyCreate=async()=>{
       stopPoll();
       myPlayer=1;myRoom=genRoomCode();
       const initState={status:'waiting',turn:1,gameState:null,p1:p1Name,p2:'...',die:null,rolled:false};
-      rmWrite(myRoom,gameId,initState);
+      await rmWrite(myRoom,gameId,initState);
       document.getElementById('lobbyStatus').innerHTML=`
         <div style="background:rgba(0,240,255,.07);border:1px solid rgba(0,240,255,.22);border-radius:10px;padding:16px;margin-top:4px">
           <div style="font-family:'Orbitron',sans-serif;font-size:.58rem;color:rgba(0,240,255,.6);letter-spacing:2px;margin-bottom:6px">YOUR ROOM CODE</div>
@@ -3563,12 +3607,12 @@ function showRoomLobby(gameId,gameIcon,gameName,gameColor,onStart){
           </div>
         </div>`;
       // Poll for P2 joining
-      pollIv=setInterval(()=>{
-        const s=rmRead(myRoom,gameId);
+      pollIv=setInterval(async()=>{
+        const s=await rmRead(myRoom,gameId);
         if(s&&s.status==='joined'){
           stopPoll();
           p2Name=s.p2||'Player 2';
-          rmWrite(myRoom,gameId,{...s,status:'playing'});
+          await rmWrite(myRoom,gameId,{...s,status:'playing'});
           onStart(myRoom,1,gameId);
         }
       },600);
@@ -3584,13 +3628,13 @@ function showRoomLobby(gameId,gameIcon,gameName,gameColor,onStart){
           </div>
           <div id="joinErr" style="font-size:.62rem;color:#ff6666;margin-top:6px;min-height:18px;font-family:'Orbitron',sans-serif"></div>
         </div>`;
-      window.lobbyJoin=()=>{
+      window.lobbyJoin=async()=>{
         const code=(document.getElementById('roomInput')?.value||'').trim().toUpperCase();
         if(code.length!==6){document.getElementById('joinErr').textContent='Enter 6-letter code';return;}
-        const s=rmRead(code,gameId);
+        const s=await rmRead(code,gameId);
         if(!s||s.status!=='waiting'){document.getElementById('joinErr').textContent='Room not found or already started';return;}
         myRoom=code;myPlayer=2;p1Name=s.p1||'Player 1';
-        rmWrite(myRoom,gameId,{...s,status:'joined',p2:p2Name});
+        await rmWrite(myRoom,gameId,{...s,status:'joined',p2:p2Name});
         document.getElementById('joinErr').textContent='';
         document.getElementById('lobbyStatus').innerHTML=`<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;color:#22c55e;margin-top:8px;animation:blink 1s infinite">✅ Joined! Starting...</div>`;
         const t=setTimeout(()=>onStart(myRoom,2,gameId),800);mpTimers.push(t);
@@ -3655,8 +3699,8 @@ function launchChess(){
   var _rc='',_mp=0,_online=false;
   function _sync(){if(!_online)return;rmWrite(_rc,'chess',{board:_board,turn:_turn,over:_over,p1:p1Name,p2:p2Name,status:'playing'});}
   function _poll(){
-    var iv=setInterval(function(){
-      var s=rmRead(_rc,'chess');if(!s||s.status!=='playing')return;
+    var iv=setInterval(async function(){
+      var s=await rmRead(_rc,'chess');if(!s||s.status!=='playing')return;
       _board=s.board;_turn=s.turn;_over=s.over;p1Name=s.p1||p1Name;p2Name=s.p2||p2Name;
       _sel=null;_legal=[];renderC();
     },700);
@@ -3786,8 +3830,8 @@ function launchSnakesLadders(){
 
   function syncSL(){if(!onlineMode)return;rmWrite(roomCode,'snakesladders',{pos,turn,die,rolled,msg,gameOver,p1:p1Name,p2:p2Name,status:'playing'});}
   function pollSL(){
-    const iv=setInterval(()=>{
-      const s=rmRead(roomCode,'snakesladders');
+    const iv=setInterval(async()=>{
+      const s=await rmRead(roomCode,'snakesladders');
       if(!s||s.status!=='playing')return;
       pos=s.pos;turn=s.turn;die=s.die;rolled=s.rolled;msg=s.msg||'';gameOver=s.gameOver;
       p1Name=s.p1||p1Name;p2Name=s.p2||p2Name;
