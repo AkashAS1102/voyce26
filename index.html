@@ -654,7 +654,7 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
     </a>
   </div>
-  <div class="f-copy">© 2026 VOYCE'26 · All rights reserved · Dept. of CSE, MECE</div>
+  <div class="f-copy">© 2026 VOYCE'26 · All rights reserved · Dept. of CSE, MECET</div>
 </footer>
 
 <!-- MODALS -->
@@ -2409,7 +2409,7 @@ window.__nativeFetch = (function(){
               <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff9500,transparent)"></div>
               <div style="font-size:2.5rem;margin-bottom:10px">🏫</div>
               <div style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:#ff9500;letter-spacing:2px;margin-bottom:8px">SPOT REGISTRATION</div>
-              <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:14px">You've chosen to pay <strong style="color:#ffd700">₹200 cash</strong> at the venue on<br><strong style="color:#fff">27 March 2026 · MECE Campus</strong><br><span style="font-size:.68rem;color:rgba(255,255,255,.38)">Elavuvilai, Marthandam – 629 171, Kanyakumari Dist.</span></div>
+              <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:14px">You've chosen to pay <strong style="color:#ffd700">₹200 cash</strong> at the venue on<br><strong style="color:#fff">27 March 2026 · MECET Campus</strong><br><span style="font-size:.68rem;color:rgba(255,255,255,.38)">Elavuvilai, Marthandam – 629 171, Kanyakumari Dist.</span></div>
               <div style="display:flex;flex-direction:column;gap:8px;text-align:left;background:rgba(0,0,0,.2);border-radius:8px;padding:14px 16px">
                 <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Report to the CSE registration desk on arrival</div>
                 <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Show this registration ID at the desk</div>
@@ -2501,7 +2501,7 @@ select.rfi option{background:#0d1526;color:#fff}
    ============================================================ */
 const RCFG = {
   UPI_ID:   '123456789@upi',      // ← Replace with your actual UPI ID
-  UPI_NAME: 'VOYCE26 MECE',
+  UPI_NAME: 'VOYCE26 MECET',
   FLAT_FEE: 200,
   ADMIN_PWD:'voyce@admin2026',
   EVENTS: [
@@ -3014,7 +3014,7 @@ async function verifyRegId(){
     showRgVerified();
   } else if(id.startsWith('VCE26-')){
     // Accept valid-format ID in demo
-    verifiedPlayer={regId:id,name:localStorage.getItem('rg_name')||'Player',college:localStorage.getItem('rg_college')||'MECE'};
+    verifiedPlayer={regId:id,name:localStorage.getItem('rg_name')||'Player',college:localStorage.getItem('rg_college')||'MECET'};
     showRgVerified();
   } else {
     err.textContent='❌ ID not found. Register first or check your ID.';err.style.display='block';
@@ -4651,7 +4651,7 @@ function launchTruthDare(){
 const SOCIAL_CONFIG = {
   instagram: [
     { id: "marephraem.edu.in",  label: "College Official Account"      },
-    { id: "mecet_cse",          label: "CSE Department"        },
+    { id: "mece_cse",          label: "CSE Department"        },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
