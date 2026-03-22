@@ -433,7 +433,12 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
     <div class="hud">
       <div class="sec-lbl" style="margin-bottom:16px">System Info</div>
       <div class="hrow"><span class="hk">EVENT DATE</span><span class="hv">27.03.2026</span></div>
-      <div class="hrow"><span class="hk">VENUE</span><span class="hv">MECE Campus</span></div>
+      <div class="hrow" style="flex-direction:column;align-items:flex-start;gap:6px;padding:13px 0">
+      <span class="hk">VENUE</span>
+      <span class="hv" style="font-size:.68rem;line-height:1.65">Mar Ephraem College of Engineering and Technology</span>
+      <span style="color:rgba(255,255,255,.38);font-size:.6rem;font-family:'Poppins',sans-serif;line-height:1.6">Elavuvilai, Marthandam – 629 171<br>Kanyakumari District, Tamil Nadu</span>
+      <a href="https://maps.google.com/?q=Mar+Ephraem+College+of+Engineering+and+Technology+Marthandam+Tamil+Nadu" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1.5px;color:#00F0FF;background:rgba(0,240,255,.07);border:1px solid rgba(0,240,255,.2);border-radius:50px;padding:4px 10px;text-decoration:none;margin-top:2px" onmouseenter="this.style.background='rgba(0,240,255,.16)'" onmouseleave="this.style.background='rgba(0,240,255,.07)'">📍 Open in Google Maps ↗</a>
+    </div>
       <div class="hrow"><span class="hk">LEVEL</span><span class="hv">National</span></div>
       <div class="hrow"><span class="hk">DEPARTMENT</span><span class="hv">CSE</span></div>
       <div class="hrow"><span class="hk">MODE</span><span class="hv">In-Person</span></div>
@@ -623,7 +628,7 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
     Register Now — ₹200
   </button>
-  <p class="reveal" style="color:rgba(255,255,255,.2);font-size:.68rem;margin-top:16px;letter-spacing:1px;font-family:'Orbitron',sans-serif">27 MARCH 2026 · MECE CAMPUS · DEPT OF CSE</p>
+  <p class="reveal" style="color:rgba(255,255,255,.2);font-size:.68rem;margin-top:16px;letter-spacing:1px;font-family:'Orbitron',sans-serif">27 MARCH 2026 · ELAVUVILAI, MARTHANDAM · KANYAKUMARI DIST.</p>
 </div></section>
 
 <!-- FOOTER -->
@@ -2404,7 +2409,7 @@ window.__nativeFetch = (function(){
               <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff9500,transparent)"></div>
               <div style="font-size:2.5rem;margin-bottom:10px">🏫</div>
               <div style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:#ff9500;letter-spacing:2px;margin-bottom:8px">SPOT REGISTRATION</div>
-              <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:14px">You've chosen to pay <strong style="color:#ffd700">₹200 cash</strong> at the venue on<br><strong style="color:#fff">27 March 2026 · MECE Campus</strong></div>
+              <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:14px">You've chosen to pay <strong style="color:#ffd700">₹200 cash</strong> at the venue on<br><strong style="color:#fff">27 March 2026 · MECE Campus</strong><br><span style="font-size:.68rem;color:rgba(255,255,255,.38)">Elavuvilai, Marthandam – 629 171, Kanyakumari Dist.</span></div>
               <div style="display:flex;flex-direction:column;gap:8px;text-align:left;background:rgba(0,0,0,.2);border-radius:8px;padding:14px 16px">
                 <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Report to the CSE registration desk on arrival</div>
                 <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Show this registration ID at the desk</div>
@@ -4645,8 +4650,8 @@ function launchTruthDare(){
 ══════════════════════════════════════════════════════════════ */
 const SOCIAL_CONFIG = {
   instagram: [
-    { id: "voyce26_official",  label: "Official Account"      },
-    { id: "mece_cse",          label: "CSE Department"        },
+    { id: "https://www.instagram.com/marephraem.edu.in?igsh=cW14eWRmZHQ0OGt3",  label: "College Official Account"      },
+    { id: "mecet_cse",          label: "CSE Department"        },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
@@ -4666,10 +4671,10 @@ const SOCIAL_CONFIG = {
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
   ],
-  facebook:  "https://www.facebook.com/@marephraem.edu.in/?hr=1&wtsid=rdr_17AijqCKP4d0CqvRF",   // e.g. "https://www.facebook.com/voyce26"
-  linkedin:  "https://www.linkedin.com/school/marephraem-college/",   // e.g. "https://www.linkedin.com/company/voyce26"
-  twitter:   "",   // e.g. "https://twitter.com/voyce26" (icon removed — kept for reference)
-  youtube:   "https://youtube.com/@marephraem?si=JUtv87F3yM9L_I2T",   // e.g. "https://www.youtube.com/@voyce26"
+  facebook:  "https://www.facebook.com/@marephraem.edu.in/?hr=1&wtsid=rdr_17AijqCKP4d0CqvRF",
+  linkedin:  "https://www.linkedin.com/school/marephraem-college/",
+  twitter:   "",   // icon removed — kept for reference
+  youtube:   "https://youtube.com/@marephraem?si=JUtv87F3yM9L_I2T",
 };
 
 /* ── Apply other social links ─────────────────────────────── */
