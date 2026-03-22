@@ -2249,7 +2249,24 @@ window.__nativeFetch = (function(){
               <div><label class="rl">Email *</label><input class="rfi" id="rfEmail" type="email" placeholder="your@email.com" maxlength="80"><div class="rerr" id="reE">Valid email required</div></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div><label class="rl">Year *</label><select class="rfi" id="rfYear"><option value="">Select Year</option><option>I Year</option><option>II Year</option><option>III Year</option><option>IV Year</option></select><div class="rerr" id="reY">Please select year</div></div>
+              <div>
+                <label class="rl">Programme *</label>
+                <select class="rfi" id="rfProg" onchange="updateYearOptions()" >
+                  <option value="">Select UG / PG</option>
+                  <option value="UG">UG (Under Graduate)</option>
+                  <option value="PG">PG (Post Graduate)</option>
+                </select>
+                <div class="rerr" id="reProg">Please select UG or PG</div>
+              </div>
+              <div>
+                <label class="rl">Year *</label>
+                <select class="rfi" id="rfYear">
+                  <option value="">Select Programme first</option>
+                </select>
+                <div class="rerr" id="reY">Please select year</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div><label class="rl">Gender</label><select class="rfi" id="rfGender"><option value="">Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select></div>
             </div>
             <button class="rsub" onclick="rGoStep(2)">NEXT → SELECT EVENTS</button>
@@ -2532,11 +2549,26 @@ function rGoStep(n){
 function rShowErr(id,show){const el=document.getElementById(id);if(el){el.style.display=show?'block':'none';el.classList.toggle('show',show);}}
 function rMark(id,err){const el=document.getElementById(id);if(el)el.classList.toggle('rerr-fi',err);}
 
+function updateYearOptions(){
+  const prog=document.getElementById('rfProg').value;
+  const yearSel=document.getElementById('rfYear');
+  yearSel.innerHTML='<option value="">Select Year</option>';
+  if(prog==='UG'){
+    ['I Year','II Year','III Year','IV Year'].forEach(y=>{
+      const o=document.createElement('option');o.value=y;o.textContent=y;yearSel.appendChild(o);
+    });
+  } else if(prog==='PG'){
+    ['I Year','II Year'].forEach(y=>{
+      const o=document.createElement('option');o.value=y;o.textContent=y;yearSel.appendChild(o);
+    });
+  }
+}
+
 function rVal1(){
   let ok=true;
-  const n=document.getElementById('rfName').value.trim(),c=document.getElementById('rfCollege').value.trim(),p=document.getElementById('rfPhone').value.trim(),em=document.getElementById('rfEmail').value.trim(),d=document.getElementById('rfDept').value,y=document.getElementById('rfYear').value;
+  const n=document.getElementById('rfName').value.trim(),c=document.getElementById('rfCollege').value.trim(),p=document.getElementById('rfPhone').value.trim(),em=document.getElementById('rfEmail').value.trim(),d=document.getElementById('rfDept').value,prog=document.getElementById('rfProg').value,y=document.getElementById('rfYear').value;
   const sf=(fi,ei,cond)=>{rMark(fi,!cond);rShowErr(ei,!cond);if(!cond)ok=false;};
-  sf('rfName','reN',n.length>=2);sf('rfCollege','reC',c.length>=3);sf('rfPhone','reP',/^[6-9]\d{9}$/.test(p));sf('rfEmail','reE',/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em));sf('rfDept','reD',!!d);sf('rfYear','reY',!!y);
+  sf('rfName','reN',n.length>=2);sf('rfCollege','reC',c.length>=3);sf('rfPhone','reP',/^[6-9]\d{9}$/.test(p));sf('rfEmail','reE',/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em));sf('rfDept','reD',!!d);sf('rfProg','reProg',!!prog);sf('rfYear','reY',!!y);
   return ok;
 }
 function rVal2(){if(rSelEvs.length===0){rShowErr('reEv',true);return false;}rShowErr('reEv',false);return true;}
@@ -2661,6 +2693,7 @@ async function sendToSheets(data) {
       phone:   data.phone   || '',
       email:   data.email   || '',
       dept:    data.dept    || '',
+      programme: data.programme || '',
       year:    data.year    || '',
       gender:  data.gender  || '',
       events:  Array.isArray(data.events) ? data.events.join(', ') : (data.events||''),
@@ -2691,6 +2724,7 @@ async function rSubmit(){
     phone:'+91'+document.getElementById('rfPhone').value.trim(),
     email:document.getElementById('rfEmail').value.trim(),
     dept:document.getElementById('rfDept').value,
+    programme:document.getElementById('rfProg').value,
     year:document.getElementById('rfYear').value,
     gender:document.getElementById('rfGender').value,
     events:rSelEvs.map(i=>RCFG.EVENTS[i].name),
@@ -2699,20 +2733,12 @@ async function rSubmit(){
     ts:new Date().toISOString(),
   };
   rProg(true,'SUBMITTING...',20);
-  
   // Upload screenshot if provided
   if(window.txnScreenshotData){
     rProgUp(40,'UPLOADING SCREENSHOT...');
     const screenshotUrl=await uploadTxnScreenshot();
-    if(screenshotUrl) {
-      regData.screenshotUrl = screenshotUrl; // Keep this so the success UI can build the "View ↗" link
-      
-      // *** THE MAGIC TRICK ***
-      // We append the URL to the txnId so the existing Apps Script saves it in the same column!
-      regData.txnId = regData.txnId + " | URL: " + screenshotUrl; 
-    }
+    if(screenshotUrl)regData.screenshotUrl=screenshotUrl;
   }
-  
   try{
     rProgUp(70,'SAVING...');
     // Save to localStorage
@@ -2722,24 +2748,14 @@ async function rSubmit(){
       ex.push(regData);
       localStorage.setItem(RSTORAGE_KEY,JSON.stringify(ex));
     }catch(e){}
-    
     rProgUp(95,'FINALIZING...');
     await new Promise(r=>setTimeout(r,400));
-    
-    // Sends the modified regData to your existing Apps Script
     sendToSheets(regData);
-    
     // Reset screenshot state
     window.txnScreenshotData=null;
     rProg(false);
-    
-    // Show success screen
     rShowSuccess(regData);
-  }catch(err){
-    console.error(err);
-    rProg(false);
-    showToast('❌ Error: '+err.message);
-  }
+  }catch(err){console.error(err);rProg(false);showToast('❌ Error: '+err.message);}
 }
 
 
@@ -2751,6 +2767,7 @@ function rShowSuccess(data){
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">NAME</span><span style="color:#fff;font-weight:500">${data.name}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PHONE</span><span style="color:#fff">${data.phone}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PROGRAMME</span><span style="color:#fff">${data.programme||'—'} · ${data.year||'—'}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">TXN ID</span><span style="color:#22c55e;font-weight:600;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:1px">${data.txnId||'—'}</span></div>
