@@ -1075,7 +1075,7 @@ async function doUpload(){
       src:imgUrl,
       likes:0,likedBy:[],
       status:'pending',
-      ts:new Date().toISOString()
+      ts:nowIST()
     };
     await addGalleryPhoto(photo);
     closeUploadModal();
@@ -1479,7 +1479,7 @@ async function loadScores(){
 async function persistScore(entry){
   try{
     entry.id=entry.id||('s_'+Date.now()+'_'+Math.random().toString(36).slice(2));
-    entry.ts=new Date().toISOString();
+    entry.ts=nowIST();
     let local=[];
     try{const r=localStorage.getItem(STORAGE_KEY);local=r?JSON.parse(r):[];}catch(e){}
     local.unshift(entry);
@@ -2186,6 +2186,11 @@ function closeUploadModal(){
 
 /* Override old handleReg stub */
 function handleReg(){}
+/* ── IST Timestamp helper (UTC+5:30) ── */
+function nowIST(){
+  const ist=new Date(Date.now()+5.5*60*60*1000);
+  return ist.toISOString().replace('Z','+05:30');
+}
 </script>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -2807,7 +2812,7 @@ async function sendToSheets(data) {
       txnId:   data.txnId   || '',
       screenshotUrl: data.screenshotUrl || '',
       status:  data.status  || 'pending',
-      ts:      data.ts      || new Date().toISOString(),
+      ts:      data.ts      || nowIST(),
     };
     console.log('Sending to Sheets:', payload);
     await fetch(SHEETS_WEBHOOK, {
@@ -2837,7 +2842,7 @@ async function rSubmit(){
     amount:rGetTotal(), flatFee:true, status:'pending',
     txnId: window.rPayMode === 'spot' ? 'SPOT' : document.getElementById('rfTxnId').value.trim(),
     payMode: window.rPayMode === 'spot' ? 'spot' : 'upi',
-    ts:new Date().toISOString(),
+    ts:nowIST(),
   };
   rProg(true,'SUBMITTING...',20);
   // Upload screenshot if provided
@@ -3762,7 +3767,7 @@ async function rmWrite(code,game,state){
   // Write to Supabase for cross-device sync
   if(window.__SB){
     try{
-      await window.__SB.from('rooms').upsert({id:key,state:payload,updated_at:new Date().toISOString()});
+      await window.__SB.from('rooms').upsert({id:key,state:payload,updated_at:nowIST()});
     }catch(e){console.warn('rmWrite Supabase error:',e);}
   }
 }
@@ -4651,7 +4656,7 @@ function launchTruthDare(){
 const SOCIAL_CONFIG = {
   instagram: [
     { id: "marephraem.edu.in",  label: "College Official Account"      },
-    { id: "mece_cse",          label: "CSE Department"        },
+    { id: "mecet_cse",          label: "CSE Department"        },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
     { id: "",                  label: ""                      },
