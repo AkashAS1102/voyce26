@@ -206,6 +206,25 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
 .soc{width:36px;height:36px;border-radius:8px;background:var(--glass);border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;text-decoration:none;color:rgba(255,255,255,.42);transition:all .3s}
 .soc:hover{color:var(--c);border-color:var(--c);box-shadow:0 0 11px rgba(0,240,255,.25)}
 .f-copy{font-size:.65rem;color:rgba(255,255,255,.16);letter-spacing:1px}
+/* ── INSTAGRAM MULTI-ACCOUNT MODAL ── */
+#igModal{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px}
+#igModal.open{display:flex;animation:fadeIn .22s ease}
+.ig-box{background:linear-gradient(145deg,#0d1526,#0a0f1c);border:1px solid rgba(0,240,255,.22);border-radius:18px;padding:28px 26px;max-width:440px;width:100%;position:relative;box-shadow:0 0 60px rgba(0,240,255,.08),0 0 120px rgba(0,0,0,.6)}
+.ig-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.ig-logo-wrap{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(220,39,67,.35)}
+.ig-title{font-family:'Orbitron',sans-serif;font-size:.88rem;font-weight:700;letter-spacing:1.5px}
+.ig-sub{font-size:.6rem;color:rgba(255,255,255,.32);letter-spacing:1px;margin-top:2px}
+.ig-list{display:flex;flex-direction:column;gap:9px;max-height:420px;overflow-y:auto;padding-right:4px}
+.ig-list::-webkit-scrollbar{width:3px}.ig-list::-webkit-scrollbar-thumb{background:rgba(220,39,67,.35);border-radius:2px}
+.ig-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);text-decoration:none;transition:all .22s;cursor:pointer}
+.ig-item:hover{background:rgba(220,39,67,.1);border-color:rgba(220,39,67,.35);transform:translateX(4px)}
+.ig-item-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0}
+.ig-item-id{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:600;color:#fff;letter-spacing:.5px}
+.ig-item-lbl{font-size:.6rem;color:rgba(255,255,255,.32);margin-top:1px}
+.ig-item-arr{margin-left:auto;color:rgba(255,255,255,.22);font-size:.9rem;transition:color .2s}
+.ig-item:hover .ig-item-arr{color:rgba(220,39,67,.7)}
+.ig-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.45);font-size:.8rem;transition:all .2s}
+.ig-close:hover{color:#fff;border-color:rgba(220,39,67,.5);background:rgba(220,39,67,.12)}
 /* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -345,7 +364,7 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
 <section id="hero">
   <div class="hero-inner">
     <div>
-      <div class="hero-badge">⬡ Mar Ephraem College of Engineering</div>
+      <div class="hero-badge">⬡ Mar Ephraem College of Engineering and Technology</div>
       <h1 class="hero-title"><span id="typeT"></span><span id="typeCursor" style="animation:blink .7s infinite;color:var(--c);font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(3.2rem,7.5vw,6.5rem)">|</span></h1>
       <div class="hero-sub">National Level Technical Symposium</div>
       <div class="hero-date">
@@ -613,10 +632,22 @@ footer{border-top:1px solid var(--gb);background:var(--sec);padding:40px 44px;te
   <div class="f-col">Mar Ephraem College of Engineering and Technology</div>
   <div class="f-dep">Department of Computer Science & Engineering</div>
   <div class="soc-row">
-    <a class="soc" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-    <a class="soc" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
-    <a class="soc" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0016 2a4.5 4.5 0 00-4.5 4.5v1A10.66 10.66 0 013 3s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></a>
-    <a class="soc" href="#"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg></a>
+    <!-- Instagram: opens multi-account popup -->
+    <a class="soc" onclick="openIgModal()" title="Instagram" style="cursor:pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+    </a>
+    <!-- Facebook -->
+    <a class="soc" id="socFacebook" href="#" target="_blank" rel="noopener" title="Facebook">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+    </a>
+    <!-- LinkedIn -->
+    <a class="soc" id="socLinkedin" href="#" target="_blank" rel="noopener" title="LinkedIn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+    </a>
+    <!-- YouTube -->
+    <a class="soc" id="socYoutube" href="#" target="_blank" rel="noopener" title="YouTube">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+    </a>
   </div>
   <div class="f-copy">© 2026 VOYCE'26 · All rights reserved · Dept. of CSE, MECE</div>
 </footer>
@@ -2304,46 +2335,84 @@ window.__nativeFetch = (function(){
       <!-- Step 3: Payment -->
       <div id="rs3" style="display:none">
         <div class="rcard"><div class="rcard-title">💳 Make Payment</div>
+
+          <!-- ── PAYMENT METHOD TOGGLE ── -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:10px">PAYMENT METHOD</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <!-- UPI Online -->
+              <div id="pmUpiBtn" onclick="setPayMode('upi')" style="padding:14px 12px;border-radius:11px;border:2px solid rgba(0,240,255,.42);background:rgba(0,240,255,.09);cursor:pointer;text-align:center;transition:all .22s">
+                <div style="font-size:1.5rem;margin-bottom:5px">📱</div>
+                <div style="font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:700;color:var(--c);letter-spacing:1px">UPI ONLINE</div>
+                <div style="font-size:.6rem;color:rgba(255,255,255,.38);margin-top:3px">GPay · PhonePe · Paytm</div>
+              </div>
+              <!-- Spot Registration -->
+              <div id="pmSpotBtn" onclick="setPayMode('spot')" style="padding:14px 12px;border-radius:11px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;text-align:center;transition:all .22s">
+                <div style="font-size:1.5rem;margin-bottom:5px">🏫</div>
+                <div style="font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:1px">SPOT REG</div>
+                <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-top:3px">Pay cash at venue</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Amount -->
           <div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,165,0,.05));border:1px solid rgba(255,215,0,.3);border-radius:11px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
             <div><div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:rgba(255,215,0,.5);margin-bottom:4px">AMOUNT TO PAY</div><div style="font-size:.74rem;color:rgba(255,255,255,.4)" id="rpEvList">—</div></div>
             <div style="text-align:right"><div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:2.2rem;color:#ffd700;text-shadow:0 0 18px rgba(255,215,0,.4)">₹<span id="rpAmt">0</span></div><div style="font-size:.58rem;color:rgba(255,215,0,.42);font-family:'Orbitron',sans-serif;letter-spacing:1px">ONE-TIME · ALL EVENTS</div></div>
           </div>
-          <!-- UPI details -->
-          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
-            <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);border-radius:9px;padding:14px 16px">
-              <div style="font-size:.58rem;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:6px">UPI ID — SEND PAYMENT TO</div>
-              <div style="font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:var(--c);word-break:break-all;margin-bottom:10px" id="rpUpiId">voyce26@upi</div>
-              <button onclick="rCopyUpi()" style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 14px;border-radius:5px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.26);color:var(--c);cursor:none;transition:all .2s">📋 COPY UPI ID</button>
+
+          <!-- ── UPI SECTION (shown when UPI mode) ── -->
+          <div id="upiSection">
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+              <div style="background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.18);border-radius:9px;padding:14px 16px">
+                <div style="font-size:.58px;letter-spacing:2px;color:rgba(0,240,255,.5);font-family:'Orbitron',sans-serif;margin-bottom:6px;font-size:.58rem">UPI ID — SEND PAYMENT TO</div>
+                <div style="font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:700;color:var(--c);word-break:break-all;margin-bottom:10px" id="rpUpiId">voyce26@upi</div>
+                <button onclick="rCopyUpi()" style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 14px;border-radius:5px;background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.26);color:var(--c);cursor:none;transition:all .2s">📋 COPY UPI ID</button>
+              </div>
+              <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.18);border-radius:9px;padding:12px 16px">
+                <div style="font-size:.58rem;letter-spacing:2px;color:rgba(34,197,94,.55);font-family:'Orbitron',sans-serif;margin-bottom:6px">ACCEPTED APPS</div>
+                <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:2">GPay &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; Paytm &nbsp;·&nbsp; BHIM &nbsp;·&nbsp; Amazon Pay</div>
+              </div>
             </div>
-            <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.18);border-radius:9px;padding:12px 16px">
-              <div style="font-size:.58rem;letter-spacing:2px;color:rgba(34,197,94,.55);font-family:'Orbitron',sans-serif;margin-bottom:6px">ACCEPTED APPS</div>
-              <div style="font-size:.78rem;color:rgba(255,255,255,.5);line-height:2">GPay &nbsp;·&nbsp; PhonePe &nbsp;·&nbsp; Paytm &nbsp;·&nbsp; BHIM &nbsp;·&nbsp; Amazon Pay</div>
+            <!-- Transaction ID -->
+            <div style="margin-bottom:18px">
+              <label class="rl">UPI Transaction ID *</label>
+              <input class="rfi" id="rfTxnId" type="text" placeholder="e.g. 4259876543210" maxlength="30"
+                style="letter-spacing:1.5px;font-family:'Orbitron',sans-serif;font-size:.85rem"
+                oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()">
+              <div style="font-size:.64rem;color:rgba(255,255,255,.28);margin-top:7px;line-height:1.7">
+                📱 Find it in your UPI app → Payment History → tap this transaction → copy the <strong style="color:rgba(0,240,255,.6)">UTR / Transaction ID</strong>
+              </div>
+              <div class="rerr" id="reTxn">Please enter your Transaction ID (min 6 characters)</div>
             </div>
-          </div>
-          <!-- Transaction ID -->
-          <div style="margin-bottom:18px">
-            <label class="rl">UPI Transaction ID *</label>
-            <input class="rfi" id="rfTxnId" type="text" placeholder="e.g. 4259876543210" maxlength="30"
-              style="letter-spacing:1.5px;font-family:'Orbitron',sans-serif;font-size:.85rem"
-              oninput="this.value=this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase()">
-            <div style="font-size:.64rem;color:rgba(255,255,255,.28);margin-top:7px;line-height:1.7">
-              📱 Find it in your UPI app → Payment History → tap this transaction → copy the <strong style="color:rgba(0,240,255,.6)">UTR / Transaction ID</strong>
+            <!-- Screenshot Upload -->
+            <div style="margin-bottom:18px">
+              <label class="rl">Transaction Screenshot <span style="color:rgba(255,255,255,.3);font-size:.6rem">(Optional but recommended)</span></label>
+              <div id="txnDropZone" onclick="document.getElementById('txnScreenshot').click()" ondragover="event.preventDefault();this.style.borderColor='var(--c)'" ondragleave="this.style.borderColor='rgba(0,240,255,.22)'" ondrop="handleTxnDrop(event)"
+                style="border:2px dashed rgba(0,240,255,.22);border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(0,240,255,.03)">
+                <div id="txnPreview" style="font-size:1.6rem;margin-bottom:4px">📷</div>
+                <div style="font-size:.68rem;color:rgba(255,255,255,.32);font-family:'Orbitron',sans-serif;letter-spacing:1px">Click or drag &amp; drop screenshot</div>
+                <input type="file" id="txnScreenshot" accept="image/*" style="display:none" onchange="previewTxnScreenshot(this)">
+              </div>
+              <div style="font-size:.62rem;color:rgba(255,255,255,.22);margin-top:6px;line-height:1.6">📌 Upload a screenshot of your UPI payment confirmation for faster verification.</div>
             </div>
-            <div class="rerr" id="reTxn">Please enter your Transaction ID (min 6 characters)</div>
           </div>
 
-          <!-- Screenshot Upload -->
-          <div style="margin-bottom:18px">
-            <label class="rl">Transaction Screenshot <span style="color:rgba(255,255,255,.3);font-size:.6rem">(Optional but recommended)</span></label>
-            <div id="txnDropZone" onclick="document.getElementById('txnScreenshot').click()" ondragover="event.preventDefault();this.style.borderColor='var(--c)'" ondragleave="this.style.borderColor='rgba(0,240,255,.22)'" ondrop="handleTxnDrop(event)"
-              style="border:2px dashed rgba(0,240,255,.22);border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(0,240,255,.03)">
-              <div id="txnPreview" style="font-size:1.6rem;margin-bottom:4px">📷</div>
-              <div style="font-size:.68rem;color:rgba(255,255,255,.32);font-family:'Orbitron',sans-serif;letter-spacing:1px">Click or drag &amp; drop screenshot</div>
-              <input type="file" id="txnScreenshot" accept="image/*" style="display:none" onchange="previewTxnScreenshot(this)">
+          <!-- ── SPOT SECTION (shown when Spot mode) ── -->
+          <div id="spotSection" style="display:none;margin-bottom:18px">
+            <div style="background:linear-gradient(135deg,rgba(255,149,0,.1),rgba(255,200,0,.05));border:1px solid rgba(255,149,0,.35);border-radius:12px;padding:20px;text-align:center;position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff9500,transparent)"></div>
+              <div style="font-size:2.5rem;margin-bottom:10px">🏫</div>
+              <div style="font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;color:#ff9500;letter-spacing:2px;margin-bottom:8px">SPOT REGISTRATION</div>
+              <div style="font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:14px">You've chosen to pay <strong style="color:#ffd700">₹200 cash</strong> at the venue on<br><strong style="color:#fff">27 March 2026 · MECE Campus</strong></div>
+              <div style="display:flex;flex-direction:column;gap:8px;text-align:left;background:rgba(0,0,0,.2);border-radius:8px;padding:14px 16px">
+                <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Report to the CSE registration desk on arrival</div>
+                <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Show this registration ID at the desk</div>
+                <div style="font-size:.68rem;color:rgba(255,255,255,.5);display:flex;gap:8px;align-items:flex-start"><span style="color:#ff9500;flex-shrink:0">→</span>Pay ₹200 cash &amp; collect your event pass</div>
+              </div>
             </div>
-            <div style="font-size:.62rem;color:rgba(255,255,255,.22);margin-top:6px;line-height:1.6">📌 Upload a screenshot of your UPI payment confirmation for faster verification.</div>
           </div>
+
             <button class="rsub" onclick="rGoStep(4)">🚀 SUBMIT REGISTRATION</button>
             <button class="rsec" onclick="rGoStep(2)">← BACK</button>
           </div>
@@ -2355,7 +2424,7 @@ window.__nativeFetch = (function(){
       <div id="rs4" style="display:none;text-align:center;padding:20px 0">
         <div style="font-size:4rem;margin-bottom:14px;animation:bounceIn .7s cubic-bezier(.175,.885,.32,1.275) both">🎉</div>
         <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.6rem;color:var(--c);text-shadow:0 0 18px var(--c);margin-bottom:6px">YOU'RE IN!</div>
-        <div style="color:rgba(255,255,255,.42);font-size:.84rem;line-height:1.8;margin-bottom:20px">Registration submitted!<br>We will verify your payment and confirm shortly.</div>
+        <div style="color:rgba(255,255,255,.42);font-size:.84rem;line-height:1.8;margin-bottom:20px">Registration submitted!<br><span id="rSuccessNote">We will verify your payment and confirm shortly.</span></div>
         <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.26);border-radius:12px;padding:16px 20px;margin-bottom:16px">
           <div style="font-size:.6rem;color:rgba(255,215,0,.5);font-family:'Orbitron',sans-serif;letter-spacing:2px;margin-bottom:5px">YOUR REGISTRATION ID</div>
           <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.5rem;color:#ffd700;text-shadow:0 0 14px rgba(255,215,0,.4);letter-spacing:2px" id="rFinalId">VCE26-XXXX</div>
@@ -2573,11 +2642,41 @@ function rVal1(){
 }
 function rVal2(){if(rSelEvs.length===0){rShowErr('reEv',true);return false;}rShowErr('reEv',false);return true;}
 function rVal3(){
+  if(window.rPayMode==='spot') return true; // Spot reg — no txn ID needed
   let ok=true;
   const txn=document.getElementById('rfTxnId').value.trim();
   if(!txn||txn.length<6){rShowErr('reTxn',true);rMark('rfTxnId',true);ok=false;}
   else{rShowErr('reTxn',false);rMark('rfTxnId',false);}
   return ok;
+}
+
+/* ── Payment mode toggle ─────────────────────────────────────── */
+window.rPayMode = 'upi'; // default
+function setPayMode(mode){
+  window.rPayMode = mode;
+  const upiBtn   = document.getElementById('pmUpiBtn');
+  const spotBtn  = document.getElementById('pmSpotBtn');
+  const upiSec   = document.getElementById('upiSection');
+  const spotSec  = document.getElementById('spotSection');
+  if(mode === 'upi'){
+    upiBtn.style.borderColor  = 'rgba(0,240,255,.42)';
+    upiBtn.style.background   = 'rgba(0,240,255,.09)';
+    upiBtn.querySelector('div:nth-child(2)').style.color = 'var(--c)';
+    spotBtn.style.borderColor = 'rgba(255,255,255,.1)';
+    spotBtn.style.background  = 'rgba(255,255,255,.03)';
+    spotBtn.querySelector('div:nth-child(2)').style.color = 'rgba(255,255,255,.55)';
+    upiSec.style.display  = 'block';
+    spotSec.style.display = 'none';
+  } else {
+    spotBtn.style.borderColor = 'rgba(255,149,0,.55)';
+    spotBtn.style.background  = 'rgba(255,149,0,.1)';
+    spotBtn.querySelector('div:nth-child(2)').style.color = '#ff9500';
+    upiBtn.style.borderColor  = 'rgba(255,255,255,.1)';
+    upiBtn.style.background   = 'rgba(255,255,255,.03)';
+    upiBtn.querySelector('div:nth-child(2)').style.color = 'rgba(255,255,255,.55)';
+    upiSec.style.display  = 'none';
+    spotSec.style.display = 'block';
+  }
 }
 
 function rToggleEv(i){
@@ -2637,6 +2736,8 @@ function rSetupPay(){
     document.getElementById('rfTxnId').disabled=false;
     document.getElementById('rfTxnId').placeholder='e.g. 4259876543210';
   }
+  // Reset to UPI mode each time step 3 opens
+  setPayMode('upi');
 }
 /* ── TRANSACTION SCREENSHOT ─────────────────────────────────── */
 window.txnScreenshotData = null;
@@ -2729,7 +2830,8 @@ async function rSubmit(){
     gender:document.getElementById('rfGender').value,
     events:rSelEvs.map(i=>RCFG.EVENTS[i].name),
     amount:rGetTotal(), flatFee:true, status:'pending',
-    txnId: document.getElementById('rfTxnId').value.trim(),
+    txnId: window.rPayMode === 'spot' ? 'SPOT' : document.getElementById('rfTxnId').value.trim(),
+    payMode: window.rPayMode === 'spot' ? 'spot' : 'upi',
     ts:new Date().toISOString(),
   };
   rProg(true,'SUBMITTING...',20);
@@ -2763,6 +2865,17 @@ function rShowSuccess(data){
   for(let i=1;i<=3;i++){const e=document.getElementById('rs'+i);if(e)e.style.display='none';}
   document.getElementById('rStepper').style.display='none';
   document.getElementById('rFinalId').textContent=data.regId;
+  // Customise note based on payment mode
+  const noteEl=document.getElementById('rSuccessNote');
+  if(noteEl){
+    if(data.payMode==='spot'){
+      noteEl.innerHTML='<span style="color:#ff9500;font-weight:600">Spot Registration — Please pay ₹200 cash at the CSE desk on arrival.</span>';
+    } else {
+      noteEl.textContent='We will verify your payment and confirm shortly.';
+    }
+  }
+  const txnColor = data.txnId==='SPOT' ? '#ff9500' : '#22c55e';
+  const txnLabel = data.txnId==='SPOT' ? '🏫 SPOT (Pay at venue)' : data.txnId||'—';
   document.getElementById('rFinalDetails').innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;font-size:.8rem">
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">NAME</span><span style="color:#fff;font-weight:500">${data.name}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">COLLEGE</span><span style="color:#fff;font-weight:500;text-align:right;max-width:60%">${data.college}</span></div>
@@ -2770,7 +2883,7 @@ function rShowSuccess(data){
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">PROGRAMME</span><span style="color:#fff">${data.programme||'—'} · ${data.year||'—'}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:10px"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;white-space:nowrap">EVENTS (${data.events.length})</span><span style="color:#fff;text-align:right;font-size:.75rem">${data.events.join(', ')}</span></div>
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">AMOUNT</span><span style="color:#ffd700;font-weight:700;font-family:'Orbitron',sans-serif">₹${data.amount} (ONE-TIME)</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">TXN ID</span><span style="color:#22c55e;font-weight:600;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:1px">${data.txnId||'—'}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">TXN ID</span><span style="color:${txnColor};font-weight:600;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:1px">${txnLabel}</span></div>
     ${data.screenshotUrl?`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><span style="color:rgba(255,255,255,.3);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px">SCREENSHOT</span><a href="${data.screenshotUrl}" target="_blank" style="color:#00F0FF;font-size:.68rem;text-decoration:none;font-family:'Orbitron',sans-serif">🖼 View ↗</a></div>`:''}
   </div>`;
   rUpdateStepper(4); document.getElementById('rs4').style.display='block';
@@ -2817,7 +2930,7 @@ function rShowSuccess(data){
    SOUTH INDIA ENGINEERING COLLEGES — 300+ Colleges
    Tamil Nadu · Kerala · Karnataka · Telangana · AP
 ═══════════════════════════════════════════════════════════ */
-const COLLEGES=["Anna University, Chennai","Madras Institute of Technology, Chennai","College of Engineering Guindy (CEG), Chennai","SSN College of Engineering, Chennai","Sri Venkateswara College of Engineering, Sriperumbudur","Rajalakshmi Engineering College, Chennai","Saveetha Engineering College, Chennai","Hindustan Institute of Technology and Science, Chennai","Sri Sairam Engineering College, Chennai","Panimalar Engineering College, Chennai","Loyola-ICAM College of Engineering, Chennai","RMD Engineering College, Chennai","Chennai Institute of Technology, Chennai","Jeppiaar Engineering College, Chennai","Easwari Engineering College, Chennai","Sri Ram Engineering College, Chennai","Vel Tech University, Chennai","Velammal Engineering College, Chennai","SRM Valliammai Engineering College, Kattankulathur","St. Joseph's College of Engineering, Chennai","Karpaga Vinayaga College of Engineering, Kanchipuram","Prathyusha Engineering College, Chennai","Agni College of Technology, Chennai","Rohini College of Engineering, Chennai","Dhanalakshmi College of Engineering, Chennai","Jerusalem College of Engineering, Chennai","Meenakshi Sundararajan Engineering College, Chennai","GKM College of Engineering, Chennai","Tagore Engineering College, Chennai","Panimalar Institute of Technology, Chennai","St. Peters Engineering College, Chennai","PSG College of Technology, Coimbatore","Coimbatore Institute of Technology, Coimbatore","Sri Krishna College of Technology, Coimbatore","SNS College of Engineering, Coimbatore","KPR Institute of Engineering and Technology, Coimbatore","Amrita College of Engineering and Technology, Coimbatore","Sri Ramakrishna Engineering College, Coimbatore","Karpagam College of Engineering, Coimbatore","Kumaraguru College of Technology, Coimbatore","RVS College of Engineering, Coimbatore","Excel Engineering College, Komarapalayam","Nehru College of Engineering, Coimbatore","Hindusthan College of Engineering, Coimbatore","Sri Eshwar College of Engineering, Coimbatore","SNS College of Technology, Coimbatore","Adithya Institute of Technology, Coimbatore","Mepco Schlenk Engineering College, Sivakasi","Thiagarajar College of Engineering, Madurai","KLN College of Engineering, Madurai","Sethu Institute of Technology, Madurai","Kamaraj College of Engineering, Madurai","National Engineering College, Kovilpatti","Rajas Engineering College, Tirunelveli","Francis Xavier Engineering College, Tirunelveli","PSR Engineering College, Sivakasi","Noorul Islam Centre for Higher Education, Kumaracoil","Mar Ephraem College of Engineering and Technology, Marthandam","Ponjesly College of Engineering, Nagercoil","Scott Christian College, Nagercoil","Dr. Sivanthi Aditanar College of Engineering, Tiruchendur","Cape Institute of Technology, Levengipuram","St. Xavier's Catholic College of Engineering, Nagercoil","Lekshmipuram College of Engineering, Nagercoil","Anna University Regional Campus, Tirunelveli","Government College of Engineering, Tirunelveli","Arunachala College of Engineering for Women, Manavilai","National Institute of Technology, Tiruchirappalli","Saranathan College of Engineering, Tiruchirappalli","St. Joseph's College of Engineering and Technology, Tiruchirappalli","MAM College of Engineering, Trichy","Bharathidasan Institute of Technology, Trichy","CARE Group of Institutions, Tiruchirappalli","Dhanalakshmi Srinivasan Engineering College, Perambalur","Arunai Engineering College, Tiruvannamalai","Mailam Engineering College, Villupuram","Annamalai University, Chidambaram","AVC College of Engineering, Mayiladuthurai","VSB Engineering College, Karur","KS Rangasamy College of Technology, Namakkal","Bannari Amman Institute of Technology, Sathyamangalam","Erode Sengunthar Engineering College, Erode","Kongu Engineering College, Perundurai","Nandha Engineering College, Erode","Vellore Institute of Technology (VIT), Vellore","Sona College of Technology, Salem","Salem College of Engineering, Salem","AVS Engineering College, Salem","Government College of Engineering, Salem","Government College of Technology, Coimbatore","Alagappa Chettiar Govt College of Engineering, Karaikudi","Pandian Saraswathi Yadav Engineering College, Sivagangai","KSR College of Engineering, Tiruchengode","Mahendra Engineering College, Namakkal","SRM Institute of Science and Technology, Kattankulathur","Valliammai Engineering College, Kattankulathur","Adhiyamaan College of Engineering, Hosur","Einstein College of Engineering, Tirunelveli","Government College of Engineering, Dharmapuri","Prist University, Thanjavur","College of Engineering, Thiruvananthapuram (CET)","Rajagiri School of Engineering, Ernakulam","Mar Baselios College of Engineering, Thiruvananthapuram","LBS College of Engineering, Kasaragod","NSS College of Engineering, Palakkad","Model Engineering College, Thrikkakara","Government Engineering College, Barton Hill","TKM College of Engineering, Kollam","Saintgits College of Engineering, Kottayam","Government Engineering College, Thrissur","College of Engineering, Kidangoor","Ilahia College of Engineering, Muvattupuzha","Jyothi Engineering College, Thrissur","Sahrdaya College of Engineering, Thrissur","KMEA Engineering College, Ernakulam","Nehru College of Engineering, Thrissur","Mangalam College of Engineering, Ettumanoor","SCMS School of Engineering, Karukutty","GEC Wayanad, Mananthavady","Malabar College of Engineering, Palakkad","Mar Athanasius College of Engineering, Kothamangalam","Government Engineering College, Idukki","Amal Jyothi College of Engineering, Kanjirappally","KMCT College of Engineering, Calicut","MEA Engineering College, Perinthalmanna","Vimal Jyothi Engineering College, Kannur","AWH Engineering College, Calicut","Toc H Institute of Science and Technology, Ernakulam","FISAT, Angamaly","Jawaharlal College of Engineering, Palakkad","Cochin University of Science and Technology, Ernakulam","Muthoot Institute of Technology, Varikoli","Trinity College of Engineering, Trivandrum","Lourdes College of Engineering, Thiruvananthapuram","Indian Institute of Science, Bengaluru","NIT Karnataka, Surathkal","RV College of Engineering, Bengaluru","BMS College of Engineering, Bengaluru","MS Ramaiah Institute of Technology, Bengaluru","PES University, Bengaluru","Manipal Institute of Technology, Manipal","JSS Academy of Technical Education, Bengaluru","Dayananda Sagar College of Engineering, Bengaluru","Siddaganga Institute of Technology, Tumkur","KLS Gogte Institute of Technology, Belagavi","CMR Institute of Technology, Bengaluru","Cambridge Institute of Technology, Bengaluru","Nitte Meenakshi Institute of Technology, Bengaluru","New Horizon College of Engineering, Bengaluru","Vidyavardhaka College of Engineering, Mysuru","JSS Science and Technology University, Mysuru","NMAM Institute of Technology, Nitte","Sri Siddhartha Institute of Technology, Tumkur","Acharya Institute of Technology, Bengaluru","SJB Institute of Technology, Bengaluru","KS Institute of Technology, Bengaluru","Global Academy of Technology, Bengaluru","Atria Institute of Technology, Bengaluru","East Point College of Engineering, Bengaluru","KLE Technological University, Hubballi","SDM College of Engineering, Dharwad","PDA College of Engineering, Kalaburagi","Bapuji Institute of Engineering, Davangere","RNS Institute of Technology, Bengaluru","Sambhram Institute of Technology, Bengaluru","BNM Institute of Technology, Bengaluru","Alliance University, Bengaluru","Presidency University, Bengaluru","Jain University, Bengaluru","Osmania University College of Engineering, Hyderabad","JNTU Hyderabad","BITS Pilani Hyderabad Campus","Chaitanya Bharathi Institute of Technology, Hyderabad","Vasavi College of Engineering, Hyderabad","CVR College of Engineering, Hyderabad","GRIET, Hyderabad","G Narayanamma Institute of Technology, Hyderabad","MGIT, Hyderabad","Malla Reddy Engineering College, Hyderabad","SR Engineering College, Warangal","KITS Warangal","NIT Warangal","CMR College of Engineering, Hyderabad","Vignan Institute of Technology, Hyderabad","HITAM, Hyderabad","KG Reddy College of Engineering, Hyderabad","Guru Nanak Institutions Technical Campus, Hyderabad","Aurora's Engineering College, Bhongir","Sree Chaitanya College of Engineering, Karimnagar","Vardhaman College of Engineering, Hyderabad","Lords Institute of Engineering, Hyderabad","Matrusri Engineering College, Hyderabad","MLRIT, Dundigal","TKR College of Engineering, Hyderabad","JNTU Kakinada","Andhra University College of Engineering, Visakhapatnam","Sri Venkateswara University College of Engineering, Tirupati","Raghu Engineering College, Visakhapatnam","GITAM University, Visakhapatnam","Andhra Loyola Institute of Engineering, Vijayawada","KL University, Guntur","Vignan's Foundation for Science and Technology, Guntur","RVR and JC College of Engineering, Guntur","Lendi Institute of Engineering, Rajam","Aditya Engineering College, Surampalem","VVIT, Guntur","SRKR Engineering College, Bhimavaram","VR Siddhartha Engineering College, Vijayawada","Narasaraopeta Engineering College, Narasaraopet","Koneru Lakshmaiah Education Foundation, Guntur","Godavari Institute of Engineering, Rajahmundry","Seshadri Rao Gudlavalleru Engineering College","Pondicherry Engineering College, Puducherry","Sri Manakula Vinayagar Engineering College, Puducherry","Rajiv Gandhi College of Engineering, Puducherry","Other College (Type Full Name)"];
+const COLLEGES=["Anna University, Chennai","Madras Institute of Technology, Chennai","College of Engineering Guindy (CEG), Chennai","SSN College of Engineering, Chennai","Sri Venkateswara College of Engineering, Sriperumbudur","Rajalakshmi Engineering College, Chennai","Saveetha Engineering College, Chennai","Hindustan Institute of Technology and Science, Chennai","Sri Sairam Engineering College, Chennai","Panimalar Engineering College, Chennai","Loyola-ICAM College of Engineering, Chennai","RMD Engineering College, Chennai","Chennai Institute of Technology, Chennai","Jeppiaar Engineering College, Chennai","Easwari Engineering College, Chennai","Sri Ram Engineering College, Chennai","Vel Tech University, Chennai","Velammal Engineering College, Chennai","SRM Valliammai Engineering College, Kattankulathur","St. Joseph's College of Engineering, Chennai","Karpaga Vinayaga College of Engineering, Kanchipuram","Prathyusha Engineering College, Chennai","Agni College of Technology, Chennai","Rohini College of Engineering, Chennai","Dhanalakshmi College of Engineering, Chennai","Jerusalem College of Engineering, Chennai","Meenakshi Sundararajan Engineering College, Chennai","GKM College of Engineering, Chennai","Tagore Engineering College, Chennai","Panimalar Institute of Technology, Chennai","St. Peters Engineering College, Chennai","PSG College of Technology, Coimbatore","Coimbatore Institute of Technology, Coimbatore","Sri Krishna College of Technology, Coimbatore","SNS College of Engineering, Coimbatore","KPR Institute of Engineering and Technology, Coimbatore","Amrita College of Engineering and Technology, Coimbatore","Sri Ramakrishna Engineering College, Coimbatore","Karpagam College of Engineering, Coimbatore","Kumaraguru College of Technology, Coimbatore","RVS College of Engineering, Coimbatore","Excel Engineering College, Komarapalayam","Nehru College of Engineering, Coimbatore","Hindusthan College of Engineering, Coimbatore","Sri Eshwar College of Engineering, Coimbatore","SNS College of Technology, Coimbatore","Adithya Institute of Technology, Coimbatore","Mepco Schlenk Engineering College, Sivakasi","Thiagarajar College of Engineering, Madurai","KLN College of Engineering, Madurai","Sethu Institute of Technology, Madurai","Kamaraj College of Engineering, Madurai","National Engineering College, Kovilpatti","Rajas Engineering College, Tirunelveli","PSR Engineering College, Sivakasi","Noorul Islam Centre for Higher Education, Kumaracoil","University College of Engineering, Nagercoil","Mar Ephraem College of Engineering and Technology, Marthandam","Ponjesly College of Engineering, Nagercoil","Scott Christian College of Engineering and Technology, Nagercoil","Dr. Sivanthi Aditanar College of Engineering, Tiruchendur","Cape Institute of Technology, Levengipuram","St. Xavier's Catholic College of Engineering, Nagercoil","Lekshmipuram College of Engineering, Nagercoil","Infant Jesus College of Engineering and Technology, Thoothoor","Bethlahem Institute of Engineering and Technology, Karungal","Narayanaguru College of Engineering, Manjalumoodu","Immanuel Arasar J.J. College of Engineering, Marthandam","Arunachala College of Engineering for Women, Manavilai","Arunachala Hitech Engineering College, Marthandam","CSI Jayaraj Annapackiam College of Engineering, Nagercoil","Sree Ayyappa College of Engineering and Technology, Elavuvilai","Vivekananda College of Engineering for Women, Tiruchendur","VINS Christian College of Engineering, Chunkankadai","Stella Mary's College of Engineering, Aruthenganville","Holy Cross Engineering College, Nagercoil","SBM College of Engineering and Technology, Dindigul","Rajiv Gandhi College of Engineering, Tirunelveli","NIT Tirunelveli, Tirunelveli","Manonmaniam Sundaranar University, Tirunelveli","PET Engineering College, Vallioor","Francis Xavier Engineering College, Tirunelveli","Einstein College of Engineering, Tirunelveli","Anna University Regional Campus, Tirunelveli","Government College of Engineering, Tirunelveli","National Institute of Technology, Tiruchirappalli","Saranathan College of Engineering, Tiruchirappalli","St. Joseph's College of Engineering and Technology, Tiruchirappalli","MAM College of Engineering, Trichy","Bharathidasan Institute of Technology, Trichy","CARE Group of Institutions, Tiruchirappalli","Dhanalakshmi Srinivasan Engineering College, Perambalur","Arunai Engineering College, Tiruvannamalai","Mailam Engineering College, Villupuram","Annamalai University, Chidambaram","AVC College of Engineering, Mayiladuthurai","VSB Engineering College, Karur","KS Rangasamy College of Technology, Namakkal","Bannari Amman Institute of Technology, Sathyamangalam","Erode Sengunthar Engineering College, Erode","Kongu Engineering College, Perundurai","Nandha Engineering College, Erode","Vellore Institute of Technology (VIT), Vellore","Sona College of Technology, Salem","Salem College of Engineering, Salem","AVS Engineering College, Salem","Government College of Engineering, Salem","Government College of Technology, Coimbatore","Alagappa Chettiar Govt College of Engineering, Karaikudi","Pandian Saraswathi Yadav Engineering College, Sivagangai","KSR College of Engineering, Tiruchengode","Mahendra Engineering College, Namakkal","SRM Institute of Science and Technology, Kattankulathur","Valliammai Engineering College, Kattankulathur","Adhiyamaan College of Engineering, Hosur","Government College of Engineering, Dharmapuri","Prist University, Thanjavur","College of Engineering, Thiruvananthapuram (CET)","Rajagiri School of Engineering, Ernakulam","Mar Baselios College of Engineering, Thiruvananthapuram","LBS College of Engineering, Kasaragod","NSS College of Engineering, Palakkad","Model Engineering College, Thrikkakara","Government Engineering College, Barton Hill","TKM College of Engineering, Kollam","Saintgits College of Engineering, Kottayam","Government Engineering College, Thrissur","College of Engineering, Kidangoor","Ilahia College of Engineering, Muvattupuzha","Jyothi Engineering College, Thrissur","Sahrdaya College of Engineering, Thrissur","KMEA Engineering College, Ernakulam","Nehru College of Engineering, Thrissur","Mangalam College of Engineering, Ettumanoor","SCMS School of Engineering, Karukutty","GEC Wayanad, Mananthavady","Malabar College of Engineering, Palakkad","Mar Athanasius College of Engineering, Kothamangalam","Government Engineering College, Idukki","Amal Jyothi College of Engineering, Kanjirappally","KMCT College of Engineering, Calicut","MEA Engineering College, Perinthalmanna","Vimal Jyothi Engineering College, Kannur","AWH Engineering College, Calicut","Toc H Institute of Science and Technology, Ernakulam","FISAT, Angamaly","Jawaharlal College of Engineering, Palakkad","Cochin University of Science and Technology, Ernakulam","Muthoot Institute of Technology, Varikoli","Trinity College of Engineering, Trivandrum","Lourdes College of Engineering, Thiruvananthapuram","Indian Institute of Science, Bengaluru","NIT Karnataka, Surathkal","RV College of Engineering, Bengaluru","BMS College of Engineering, Bengaluru","MS Ramaiah Institute of Technology, Bengaluru","PES University, Bengaluru","Manipal Institute of Technology, Manipal","JSS Academy of Technical Education, Bengaluru","Dayananda Sagar College of Engineering, Bengaluru","Siddaganga Institute of Technology, Tumkur","KLS Gogte Institute of Technology, Belagavi","CMR Institute of Technology, Bengaluru","Cambridge Institute of Technology, Bengaluru","Nitte Meenakshi Institute of Technology, Bengaluru","New Horizon College of Engineering, Bengaluru","Vidyavardhaka College of Engineering, Mysuru","JSS Science and Technology University, Mysuru","NMAM Institute of Technology, Nitte","Sri Siddhartha Institute of Technology, Tumkur","Acharya Institute of Technology, Bengaluru","SJB Institute of Technology, Bengaluru","KS Institute of Technology, Bengaluru","Global Academy of Technology, Bengaluru","Atria Institute of Technology, Bengaluru","East Point College of Engineering, Bengaluru","KLE Technological University, Hubballi","SDM College of Engineering, Dharwad","PDA College of Engineering, Kalaburagi","Bapuji Institute of Engineering, Davangere","RNS Institute of Technology, Bengaluru","Sambhram Institute of Technology, Bengaluru","BNM Institute of Technology, Bengaluru","Alliance University, Bengaluru","Presidency University, Bengaluru","Jain University, Bengaluru","Osmania University College of Engineering, Hyderabad","JNTU Hyderabad","BITS Pilani Hyderabad Campus","Chaitanya Bharathi Institute of Technology, Hyderabad","Vasavi College of Engineering, Hyderabad","CVR College of Engineering, Hyderabad","GRIET, Hyderabad","G Narayanamma Institute of Technology, Hyderabad","MGIT, Hyderabad","Malla Reddy Engineering College, Hyderabad","SR Engineering College, Warangal","KITS Warangal","NIT Warangal","CMR College of Engineering, Hyderabad","Vignan Institute of Technology, Hyderabad","HITAM, Hyderabad","KG Reddy College of Engineering, Hyderabad","Guru Nanak Institutions Technical Campus, Hyderabad","Aurora's Engineering College, Bhongir","Sree Chaitanya College of Engineering, Karimnagar","Vardhaman College of Engineering, Hyderabad","Lords Institute of Engineering, Hyderabad","Matrusri Engineering College, Hyderabad","MLRIT, Dundigal","TKR College of Engineering, Hyderabad","JNTU Kakinada","Andhra University College of Engineering, Visakhapatnam","Sri Venkateswara University College of Engineering, Tirupati","Raghu Engineering College, Visakhapatnam","GITAM University, Visakhapatnam","Andhra Loyola Institute of Engineering, Vijayawada","KL University, Guntur","Vignan's Foundation for Science and Technology, Guntur","RVR and JC College of Engineering, Guntur","Lendi Institute of Engineering, Rajam","Aditya Engineering College, Surampalem","VVIT, Guntur","SRKR Engineering College, Bhimavaram","VR Siddhartha Engineering College, Vijayawada","Narasaraopeta Engineering College, Narasaraopet","Koneru Lakshmaiah Education Foundation, Guntur","Godavari Institute of Engineering, Rajahmundry","Seshadri Rao Gudlavalleru Engineering College","Pondicherry Engineering College, Puducherry","Sri Manakula Vinayagar Engineering College, Puducherry","Rajiv Gandhi College of Engineering, Puducherry","Other College (Type Full Name)"];
 
 /* ── College search init ───────────────────────────────── */
 function initColSearch(inputId, wrapId, onSel){
@@ -4518,5 +4631,107 @@ function launchTruthDare(){
   }
   render();
 }
+/* ══════════════════════════════════════════════════════════════
+   ▶  SOCIAL MEDIA CONFIG — Edit your IDs here!
+   ══════════════════════════════════════════════════════════════
+
+   INSTAGRAM accounts (up to 8):
+     id    → Instagram username (without @)
+     label → Friendly name shown below the username
+   Leave unused slots as empty strings "" to hide them. (Up to 20 supported)
+
+   OTHER SOCIALS:
+     Set the URL, or leave "" to keep the icon but disable the link.
+══════════════════════════════════════════════════════════════ */
+const SOCIAL_CONFIG = {
+  instagram: [
+    { id: "voyce26_official",  label: "Official Account"      },
+    { id: "mece_cse",          label: "CSE Department"        },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+    { id: "",                  label: ""                      },
+  ],
+  facebook:  "https://www.facebook.com/@marephraem.edu.in/?hr=1&wtsid=rdr_17AijqCKP4d0CqvRF",   // e.g. "https://www.facebook.com/voyce26"
+  linkedin:  "https://www.linkedin.com/school/marephraem-college/",   // e.g. "https://www.linkedin.com/company/voyce26"
+  twitter:   "",   // e.g. "https://twitter.com/voyce26" (icon removed — kept for reference)
+  youtube:   "https://youtube.com/@marephraem?si=JUtv87F3yM9L_I2T",   // e.g. "https://www.youtube.com/@voyce26"
+};
+
+/* ── Apply other social links ─────────────────────────────── */
+(function applySocials(){
+  const m = {
+    socFacebook: SOCIAL_CONFIG.facebook,
+    socLinkedin: SOCIAL_CONFIG.linkedin,
+    socYoutube:  SOCIAL_CONFIG.youtube,
+  };
+  Object.entries(m).forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (url) { el.href = url; }
+    else { el.href = '#'; el.onclick = e => e.preventDefault(); }
+  });
+})();
+
+/* ── Instagram Modal ──────────────────────────────────────── */
+function openIgModal(){
+  const modal = document.getElementById('igModal');
+  if (!modal) return;
+  const list  = document.getElementById('igList');
+  const accounts = SOCIAL_CONFIG.instagram.filter(a => a.id.trim() !== '');
+  if (accounts.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.35);font-size:.8rem;padding:20px 0">No Instagram accounts added yet.<br><span style="font-size:.68rem;color:rgba(0,240,255,.4)">Edit SOCIAL_CONFIG in the script.</span></div>';
+  } else {
+    list.innerHTML = accounts.map(a => {
+      const initials = a.id.slice(0,2).toUpperCase();
+      return `<a class="ig-item" href="https://instagram.com/${a.id}" target="_blank" rel="noopener">
+        <div class="ig-item-av">${initials}</div>
+        <div>
+          <div class="ig-item-id">@${a.id}</div>
+          ${a.label ? `<div class="ig-item-lbl">${a.label}</div>` : ''}
+        </div>
+        <span class="ig-item-arr">↗</span>
+      </a>`;
+    }).join('');
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeIgModal(){
+  document.getElementById('igModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
 </script>
+
+<!-- INSTAGRAM MULTI-ACCOUNT MODAL -->
+<div id="igModal" onclick="if(event.target===this)closeIgModal()">
+  <div class="ig-box">
+    <button class="ig-close" onclick="closeIgModal()">✕</button>
+    <div class="ig-header">
+      <div class="ig-logo-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ig-title">Instagram</div>
+        <div class="ig-sub">VOYCE'26 Official Accounts</div>
+      </div>
+    </div>
+    <div class="ig-list" id="igList"></div>
+  </div>
+</div>
+
 </body></html>
